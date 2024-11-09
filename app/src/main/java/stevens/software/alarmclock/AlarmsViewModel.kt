@@ -20,18 +20,18 @@ class AlarmsViewModel: ViewModel() {
             time ="13:00",
             selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
         ),
-        Alarm(
-            time = "10:00",
-            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-        ),
-        Alarm(
-            time = "10:00",
-            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-        ),
-        Alarm(
-            time = "10:00",
-            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-        ),
+//        Alarm(
+//            time = "10:00",
+//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
+//        ),
+//        Alarm(
+//            time = "10:00",
+//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
+//        ),
+//        Alarm(
+//            time = "10:00",
+//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
+//        ),
     )
 }
 
