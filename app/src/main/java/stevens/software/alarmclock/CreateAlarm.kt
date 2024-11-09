@@ -13,13 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -32,7 +32,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,23 +46,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-@Preview(showSystemUi = true)
-fun CreateAlarmScreen(
-    onCloseButtonClicked: () -> Unit = {}
+fun CreateAlarmScreen(onCloseButtonClicked: () -> Unit){
+    CreateAlarm(onCloseButtonClicked = onCloseButtonClicked)
+}
+
+@Composable
+fun CreateAlarm(
+    createAlarmViewModel: CreateAlarmViewModel = viewModel(),
+    onCloseButtonClicked: () -> Unit = {},
 ) {
     Box(
         modifier = Modifier
-            .padding(top = 50.dp)
+            .safeDrawingPadding()
             .background(color = MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
-
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -92,10 +95,8 @@ fun CreateAlarmScreen(
             Spacer(Modifier.size(24.dp))
             AlarmTimePicker()
             Spacer(Modifier.size(16.dp))
-
             AlarmName(alarmNameValue = "Work")
             Spacer(Modifier.size(16.dp))
-
 //            AddAlarmNameDialog("Work", {})
         }
 
@@ -110,7 +111,7 @@ fun AlarmTimePicker() {
             .clip(RoundedCornerShape(10.dp))
             .background(colorResource(R.color.white))
             .fillMaxWidth()
-            .height(143.dp),
+            .padding(vertical = 24.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
@@ -118,12 +119,10 @@ fun AlarmTimePicker() {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             TimePicker(
                 value = "00",
                 onValueChange = {}
             )
-
             Text(
                 text = ":",
                 color = colorResource(R.color.grey),
@@ -131,7 +130,6 @@ fun AlarmTimePicker() {
                 fontFamily = montserratFontFamily,
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
-
             TimePicker(
                 value = "00",
                 onValueChange = {}
@@ -170,7 +168,6 @@ fun TimePicker(value: String, onValueChange: (String) -> Unit) {
 @Composable
 fun AlarmName(alarmNameValue: String){
     var alarmNameValue by remember { mutableStateOf(alarmNameValue) }
-
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -195,9 +192,7 @@ fun AlarmName(alarmNameValue: String){
                 fontFamily = montserratFontFamily,
                 fontSize = 14.sp
             )
-
         }
-
     }
 }
 
@@ -264,5 +259,13 @@ fun AddAlarmNameDialog(alarmName: String, onAlarmNameChanged: (String) -> Unit){
             }
 
         }
+    }
+}
+
+@Preview(showSystemUi = true)
+@Composable
+fun CreateAlarmPreview() {
+    MaterialTheme {
+        CreateAlarm()
     }
 }

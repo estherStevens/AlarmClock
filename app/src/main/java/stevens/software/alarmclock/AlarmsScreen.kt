@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,14 +42,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 @Composable
-fun AlarmsScreen() {
-    Alarms()
+fun AlarmsScreen(onAddAlarmClicked: () -> Unit) {
+    Alarms(onAddAlarmClicked = onAddAlarmClicked)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Alarms(
     alarmsViewModel: AlarmsViewModel = viewModel(),
+    onAddAlarmClicked: () -> Unit
 ) {
     val uiState = alarmsViewModel.uiState.collectAsStateWithLifecycle()
     Box(
@@ -59,7 +59,6 @@ fun Alarms(
             .background(color = MaterialTheme.colorScheme.background)
             .fillMaxSize()
     ) {
-
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = stringResource(R.string.your_alarms),
@@ -69,12 +68,10 @@ fun Alarms(
                 fontWeight = FontWeight.Bold,
             )
 
-            if(uiState.value.alarms.isEmpty()){
+            if (uiState.value.alarms.isEmpty()) {
                 EmptyState(modifier = Modifier.weight(1f))
             } else {
-
                 LazyColumn(modifier = Modifier.weight(1f)) {
-
                     items(uiState.value.alarms) { alarm ->
                         AlarmCard(
                             alarmTime = alarm.time,
@@ -82,9 +79,7 @@ fun Alarms(
                         )
                     }
                 }
-
             }
-//
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,7 +87,7 @@ fun Alarms(
                 contentAlignment = Alignment.BottomCenter,
             ) {
                 FloatingActionButton(
-                    onClick = {},
+                    onClick = onAddAlarmClicked,
                     shape = CircleShape,
                     containerColor = colorResource(R.color.blue),
                     contentColor = colorResource(R.color.white)
@@ -103,24 +98,13 @@ fun Alarms(
                     )
                 }
             }
-
-
         }
     }
 }
 
 
 @Composable
-@Preview(showSystemUi = true)
-fun AlarmsScreenPreview() {
-    MaterialTheme {
-        Alarms()
-    }
-}
-
-@Composable
 fun AlarmCard(
-    modifier: Modifier = Modifier,
     alarmTime: String,
     selectedDays: List<SelectedDaysOfTheWeek>
 ) {
@@ -132,7 +116,6 @@ fun AlarmCard(
             .padding(16.dp)
             .fillMaxWidth()
     ) {
-
         Column {
             Text(
                 text = stringResource(id = R.string.wake_up),
@@ -158,7 +141,7 @@ fun AlarmCard(
                 color = colorResource(R.color.grey)
             )
             Spacer(Modifier.size(8.dp))
-            AlarmDayPills(selectedDays = selectedDays)
+            /*AlarmDayPills(selectedDays = selectedDays)*/
             Spacer(Modifier.size(8.dp))
             Text(
                 text = "Go to bed at 02:00AM to get 8h of sleep",
@@ -172,7 +155,7 @@ fun AlarmCard(
     }
 }
 
-@Composable
+/*@Composable
 fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>) {
     var isMondaySelected: Boolean = false
     var isTuesdaySelected: Boolean = false
@@ -208,9 +191,9 @@ fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>) {
         AlarmDayPill("Sa", isSaturdaySelected)
         AlarmDayPill("Su", isSundaySelected)
     }
-}
+}*/
 
-@Composable
+/*@Composable
 fun AlarmDayPill(
     dayOfWeek: String,
     isPillSelected: Boolean
@@ -231,12 +214,14 @@ fun AlarmDayPill(
             fontWeight = FontWeight.Bold
         )
     }
-}
+}*/
 
 @Composable
-fun EmptyState(modifier: Modifier){
-    Box(modifier = modifier.padding(horizontal = 31.dp),
-        contentAlignment = Alignment.Center) {
+fun EmptyState(modifier: Modifier) {
+    Box(
+        modifier = modifier.padding(horizontal = 31.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(R.drawable.empty_state_icon),
@@ -258,3 +243,13 @@ fun EmptyState(modifier: Modifier){
 val montserratFontFamily = FontFamily(
     Font(R.font.montserrat_regular)
 )
+
+@Composable
+@Preview(showSystemUi = true)
+fun AlarmsScreenPreview() {
+    MaterialTheme {
+        Alarms(
+            onAddAlarmClicked = {}
+        )
+    }
+}

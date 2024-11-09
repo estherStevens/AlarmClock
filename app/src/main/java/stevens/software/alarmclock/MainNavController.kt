@@ -10,13 +10,23 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Alarms
 
+@Serializable
+object CreateAlarm
+
 @Composable
 fun MainNavController() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = Alarms) {
         composable<Alarms> {
-            AlarmsScreen()
+            AlarmsScreen(
+                onAddAlarmClicked = { navController.navigate(CreateAlarm) }
+            )
+        }
+        composable<CreateAlarm> {
+            CreateAlarmScreen(
+                onCloseButtonClicked = { navController.popBackStack() }
+            )
         }
     }
 }

@@ -43,3 +43,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-serialize = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin_serialization_plugin" }
 
+
