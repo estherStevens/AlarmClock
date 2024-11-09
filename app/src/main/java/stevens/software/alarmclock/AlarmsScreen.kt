@@ -1,5 +1,6 @@
 package stevens.software.alarmclock
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,13 +15,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,28 +35,59 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlarmsScreen(
     alarmsViewModel: AlarmsViewModel = viewModel()
 ) {
     val uiState = alarmsViewModel.uiState.collectAsStateWithLifecycle()
-    Box(modifier = Modifier.background(color = MaterialTheme.colorScheme.background).fillMaxSize()) {
-        LazyColumn{
-            item {
-                Text(
-                    text = stringResource(R.string.your_alarms),
-                    modifier = Modifier.padding(start = 16.dp, top = 80.dp, end = 16.dp),
-                    fontSize = 24.sp,
-                    fontFamily = montserratFontFamily,
-                    fontWeight = FontWeight.Bold,
-                )
+    Box(
+        modifier = Modifier
+            .background(color = MaterialTheme.colorScheme.background)
+            .fillMaxSize()
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+
+
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                item {
+                    Text(
+                        text = stringResource(R.string.your_alarms),
+                        modifier = Modifier.padding(start = 16.dp, top = 80.dp, end = 16.dp),
+                        fontSize = 24.sp,
+                        fontFamily = montserratFontFamily,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                items(uiState.value.alarms) { alarm ->
+                    AlarmCard(
+                        alarmTime = alarm.time,
+                        selectedDays = alarm.selectedDays
+                    )
+                }
             }
-            items(uiState.value.alarms) { alarm ->
-                AlarmCard(
-                    alarmTime = alarm.time,
-                    selectedDays = alarm.selectedDays
-                )
+
+
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 30.dp, top = 16.dp),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                FloatingActionButton(
+                    onClick = {},
+                    shape = CircleShape,
+                    containerColor = colorResource(R.color.blue),
+                    contentColor = colorResource(R.color.white)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.add),
+                        contentDescription = ""
+                    )
+                }
             }
+
         }
     }
 }
@@ -69,13 +106,15 @@ fun AlarmCard(
     modifier: Modifier = Modifier,
     alarmTime: String,
     selectedDays: List<SelectedDaysOfTheWeek>
-){
-    Box(modifier = Modifier
-        .padding(16.dp)
-        .clip(RoundedCornerShape(10.dp))
-        .background(color = colorResource(R.color.white))
-        .padding(16.dp)
-        .fillMaxWidth()){
+) {
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(color = colorResource(R.color.white))
+            .padding(16.dp)
+            .fillMaxWidth()
+    ) {
 
         Column {
             Text(
@@ -117,7 +156,7 @@ fun AlarmCard(
 }
 
 @Composable
-fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>){
+fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>) {
     var isMondaySelected: Boolean = false
     var isTuesdaySelected: Boolean = false
     var isWednesdaySelected: Boolean = false
@@ -126,8 +165,8 @@ fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>){
     var isSaturdaySelected: Boolean = false
     var isSundaySelected: Boolean = false
 
-    for(day in selectedDays) {
-        when(day) {
+    for (day in selectedDays) {
+        when (day) {
             SelectedDaysOfTheWeek.MONDAY -> isMondaySelected = true
             SelectedDaysOfTheWeek.TUESDAY -> isTuesdaySelected = true
             SelectedDaysOfTheWeek.WEDNESDAY -> isWednesdaySelected = true
@@ -138,7 +177,12 @@ fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>){
         }
     }
 
-    Row(modifier = Modifier.fillMaxWidth().height(38.dp), horizontalArrangement = Arrangement.SpaceEvenly){
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(38.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
         AlarmDayPill("Mo", isMondaySelected)
         AlarmDayPill("Tu", isTuesdaySelected)
         AlarmDayPill("We", isWednesdaySelected)
@@ -150,13 +194,18 @@ fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>){
 }
 
 @Composable
-fun AlarmDayPill(dayOfWeek: String,
-                 isPillSelected: Boolean){
-    val pillColour = if(isPillSelected) colorResource(R.color.blue) else colorResource(R.color.light_blue)
-    Box(modifier = Modifier
-        .defaultMinSize(minWidth = 38.dp)
-        .clip(RoundedCornerShape(38.dp))
-        .background(color = pillColour)){
+fun AlarmDayPill(
+    dayOfWeek: String,
+    isPillSelected: Boolean
+) {
+    val pillColour =
+        if (isPillSelected) colorResource(R.color.blue) else colorResource(R.color.light_blue)
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 38.dp)
+            .clip(RoundedCornerShape(38.dp))
+            .background(color = pillColour)
+    ) {
         Text(
             text = dayOfWeek,
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),

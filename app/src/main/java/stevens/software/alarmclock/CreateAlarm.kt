@@ -97,7 +97,7 @@ fun CreateAlarmScreen(
             AlarmName(alarmNameValue = "Work")
             Spacer(Modifier.size(16.dp))
 
-            AddAlarmNameDialog("Work", {})
+//            AddAlarmNameDialog("Work", {})
         }
 
     }
