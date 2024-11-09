@@ -11,17 +11,14 @@ class AlarmsViewModel: ViewModel() {
         )
     )
 
-    fun mockAlarms() = listOf<Alarm>(
-        Alarm(
-            time = "10:00",
-            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-        ),
-        Alarm(
-            time ="13:00",
-            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-        ),
+    fun mockAlarms() = emptyList<Alarm>()
+//        listOf<Alarm>(
 //        Alarm(
 //            time = "10:00",
+//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
+//        ),
+//        Alarm(
+//            time ="13:00",
 //            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
 //        ),
 //        Alarm(
@@ -32,7 +29,11 @@ class AlarmsViewModel: ViewModel() {
 //            time = "10:00",
 //            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
 //        ),
-    )
+//        Alarm(
+//            time = "10:00",
+//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
+//        ),
+//    )
 }
 
 data class AlarmsUiState(val alarms: List<Alarm>)

@@ -6,5 +6,8 @@
     <string name="save">Save</string>
     <string name="alarm_name">Alarm Name</string>
     <string name="save_alarm_name">Save</string>
+    <string name="empty_state_text">It\'s empty! Add the first alarm so you don\'t miss an important moment!</string>
+
+
 
 </resources>
