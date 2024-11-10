@@ -36,8 +36,10 @@ import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +73,22 @@ fun CreateAlarm(
     onCloseButtonClicked: () -> Unit = {}
 ) {
     val uiState = createAlarmViewModel.uiState.collectAsStateWithLifecycle()
+    var openChangeAlarmNameDialog = remember { mutableStateOf(false) }
+    var saveButtonEnabled = uiState.value.saveButtonEnabled
+    var alarmName = uiState.value.alarmName
+
+    if(openChangeAlarmNameDialog.value) {
+        AddAlarmNameDialog(
+            alarmName = alarmName,
+            onSaveClicked = {
+                createAlarmViewModel.updateAlarmName(it)
+                openChangeAlarmNameDialog.value = false
+            },
+            onDismissDialog = {
+                openChangeAlarmNameDialog.value = false
+            }
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -79,7 +97,6 @@ fun CreateAlarm(
             .fillMaxSize()
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -95,11 +112,13 @@ fun CreateAlarm(
                     tint = colorResource(R.color.light_grey)
                 )
 
+
                 Button(
                     onClick = {},
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_grey)
+                        containerColor = if(saveButtonEnabled) colorResource(R.color.blue) else colorResource(R.color.light_grey)
                     ),
+                    enabled = saveButtonEnabled
                 ) {
                     Text(
                         text = stringResource(R.string.save),
@@ -119,9 +138,13 @@ fun CreateAlarm(
                 },
             )
             Spacer(Modifier.size(16.dp))
-            AlarmName(alarmNameValue = "Work")
+            AlarmName(
+                alarmNameValue = uiState.value.alarmName,
+                onAlarmNameClicked = {
+                    openChangeAlarmNameDialog.value = true
+                }
+            )
             Spacer(Modifier.size(16.dp))
-//            AddAlarmNameDialog("Work", {})
         }
 
     }
@@ -236,12 +259,14 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
 }
 
 @Composable
-fun AlarmName(alarmNameValue: String){
-    var alarmNameValue by remember { mutableStateOf(alarmNameValue) }
+fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit){
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
             .background(colorResource(R.color.white))
+            .clickable {
+                onAlarmNameClicked()
+            }
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
     ){
@@ -267,11 +292,13 @@ fun AlarmName(alarmNameValue: String){
 }
 
 @Composable
-fun AddAlarmNameDialog(alarmName: String, onAlarmNameChanged: (String) -> Unit){
-    var alarmName by remember { mutableStateOf(alarmName) }
+fun AddAlarmNameDialog(alarmName: String, onDismissDialog: () -> Unit, onSaveClicked: (String) -> Unit){
+    var alarmName by remember {
+        mutableStateOf(alarmName)
+    }
 
     Dialog(
-        onDismissRequest = {}
+        onDismissRequest = onDismissDialog,
     ) {
         Card(
             modifier = Modifier
@@ -297,7 +324,9 @@ fun AddAlarmNameDialog(alarmName: String, onAlarmNameChanged: (String) -> Unit){
             Spacer(Modifier.size(10.dp))
             OutlinedTextField(
                 value = alarmName,
-                onValueChange = onAlarmNameChanged,
+                onValueChange = {
+                    alarmName = it
+                },
                 modifier = Modifier.padding(horizontal = 16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = colorResource(R.color.light_grey),
@@ -312,7 +341,9 @@ fun AddAlarmNameDialog(alarmName: String, onAlarmNameChanged: (String) -> Unit){
             Spacer(Modifier.size(10.dp))
 
             Button(
-                onClick = {},
+                onClick = {
+                    onSaveClicked(alarmName)
+                },
                 modifier = Modifier.align(Alignment.End).padding(end = 16.dp, bottom = 16.dp),
                 colors = ButtonDefaults.buttonColors().copy(
                     containerColor = colorResource(R.color.blue),
