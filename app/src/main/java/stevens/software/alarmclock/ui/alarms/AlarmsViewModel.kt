@@ -1,4 +1,4 @@
-package stevens.software.alarmclock
+package stevens.software.alarmclock.ui.alarms
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -14,9 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.koin.android.ext.koin.androidContext
-import org.koin.core.context.startKoin
-import stevens.software.alarmclock.di.appModule
+//import org.koin.android.ext.koin.androidContext
+//import org.koin.core.context.startKoin
+//import stevens.software.alarmclock.di.appModule
 import stevens.software.alarmclock.ui.theme.AlarmClockTheme
 
 class MainActivity : ComponentActivity() {
@@ -25,10 +25,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AlarmClockTheme {
-                startKoin {
+                /*startKoin {
                     androidContext(this@MainActivity)
                     modules(appModule)
-                }
+                }*/
                 enableEdgeToEdge()
 
 //                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

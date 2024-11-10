@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler) apply true
     alias(libs.plugins.kotlin.serialize) apply true
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -62,9 +63,12 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.compose.navigation)
-    implementation(libs.koin)
+//    implementation(libs.koin)
     implementation(libs.kotlin.serialization)
     implementation(libs.compose.lifecycle)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
