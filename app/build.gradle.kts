@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.compose.navigation)
     implementation(libs.koin)
     implementation(libs.kotlin.serialization)
+    implementation(libs.compose.lifecycle)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

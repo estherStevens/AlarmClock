@@ -1,5 +1,6 @@
 package stevens.software.alarmclock
 
+import android.widget.NumberPicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -29,6 +32,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TimePickerDefaults
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,23 +47,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun CreateAlarmScreen(onCloseButtonClicked: () -> Unit){
-    CreateAlarm(onCloseButtonClicked = onCloseButtonClicked)
+    CreateAlarm(
+        onCloseButtonClicked = onCloseButtonClicked
+    )
 }
 
 @Composable
 fun CreateAlarm(
     createAlarmViewModel: CreateAlarmViewModel = viewModel(),
-    onCloseButtonClicked: () -> Unit = {},
+    onCloseButtonClicked: () -> Unit = {}
 ) {
+    val uiState = createAlarmViewModel.uiState.collectAsStateWithLifecycle()
+
     Box(
         modifier = Modifier
             .safeDrawingPadding()
@@ -65,6 +79,7 @@ fun CreateAlarm(
             .fillMaxSize()
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -93,7 +108,16 @@ fun CreateAlarm(
                 }
             }
             Spacer(Modifier.size(24.dp))
-            AlarmTimePicker()
+            AlarmTimePicker(
+                hour = uiState.value.alarmHour,
+                minute = uiState.value.alarmMinute,
+                onHourChanged = {
+                    createAlarmViewModel.updateAlarmHour(it)
+                },
+                onMinuteChanged = {
+                    createAlarmViewModel.updateAlarmMinute(it)
+                },
+            )
             Spacer(Modifier.size(16.dp))
             AlarmName(alarmNameValue = "Work")
             Spacer(Modifier.size(16.dp))
@@ -105,7 +129,10 @@ fun CreateAlarm(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlarmTimePicker() {
+fun AlarmTimePicker(hour: String,
+                    minute: String,
+                    onHourChanged: (String) -> Unit,
+                    onMinuteChanged: (String) -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -114,14 +141,17 @@ fun AlarmTimePicker() {
             .padding(vertical = 24.dp),
         contentAlignment = Alignment.Center
     ) {
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TimePicker(
-                value = "00",
-                onValueChange = {}
+            HourTimePicker(
+                alarmHour = hour,
+                onHourChanged = { it ->
+                    onHourChanged(it)
+                },
             )
             Text(
                 text = ":",
@@ -130,9 +160,11 @@ fun AlarmTimePicker() {
                 fontFamily = montserratFontFamily,
                 modifier = Modifier.padding(horizontal = 10.dp)
             )
-            TimePicker(
-                value = "00",
-                onValueChange = {}
+            MinuteTimePicker(
+                alarmMinute = minute,
+                onMinuteChanged = { it ->
+                    onMinuteChanged(it)
+                }
             )
         }
     }
@@ -140,30 +172,68 @@ fun AlarmTimePicker() {
 }
 
 @Composable
-fun TimePicker(value: String, onValueChange: (String) -> Unit) {
+fun HourTimePicker(alarmHour: String, onHourChanged: (String) -> Unit){
+    val regex = Regex("^(\\s*|([0-9]|0[0-9]|1[0-9]|2[0-3]))\$")
+    TimePickerItem(
+        value = alarmHour,
+        regex = regex,
+        onValueChanged = onHourChanged
+    )
+}
+
+@Composable
+fun MinuteTimePicker(alarmMinute: String, onMinuteChanged: (String) -> Unit){
+    val regex = Regex("^(\\s*|([0-9]|0[0-9]|[1-5][0-9]))$")
+    TimePickerItem(
+        value = alarmMinute,
+        regex = regex,
+        onValueChanged = onMinuteChanged
+    )
+}
+
+@Composable
+fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit) {
     var value by remember { mutableStateOf(value) }
     TextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = {
+            if(it.matches(regex)) {
+                value = it
+                onValueChanged(it)
+            }
+        },
         singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.width(128.dp),
         shape = RoundedCornerShape(10.dp),
         colors = TextFieldDefaults.colors().copy(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
+            focusedTextColor = colorResource(R.color.blue),
+            unfocusedTextColor = colorResource(R.color.blue),
+            focusedPlaceholderColor = colorResource(R.color.blue),
+            unfocusedPlaceholderColor = colorResource(R.color.grey),
             focusedContainerColor = colorResource(R.color.very_light_grey),
             unfocusedContainerColor = colorResource(R.color.very_light_grey),
         ),
+        placeholder = {
+            Text(
+                text = "00",
+                fontSize = 52.sp,
+                fontFamily = montserratFontFamily,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center,
+            )
+        },
         textStyle = TextStyle.Default.copy(
             fontSize = 52.sp,
             fontFamily = montserratFontFamily,
             fontWeight = FontWeight.Bold,
-            color = colorResource(R.color.grey),
             textAlign = TextAlign.Center,
         ),
     )
 }
-
 
 @Composable
 fun AlarmName(alarmNameValue: String){
