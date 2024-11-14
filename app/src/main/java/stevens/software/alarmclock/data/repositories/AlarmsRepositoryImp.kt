@@ -1,6 +1,7 @@
 package stevens.software.alarmclock.data.repositories
 
 import android.content.Context
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import stevens.software.alarmclock.data.Alarm
 import stevens.software.alarmclock.data.AlarmsDatabase
@@ -25,6 +26,7 @@ class AlarmsRepositoryImp(val context: Context): AlarmsRepository {
     }
 
     override fun getAllAlarms(): Flow<List<Alarm>> {
+
        val i=  alarmDao.getAllAlarms()
         return i
     }

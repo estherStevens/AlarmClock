@@ -128,7 +128,9 @@ fun CreateAlarm(
                 ) {
                     Text(
                         text = stringResource(R.string.save),
-                        color = colorResource(R.color.white)
+                        color = colorResource(R.color.white),
+                        fontFamily = montserratFontFamily,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }
@@ -250,7 +252,7 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
                 text = "00",
                 fontSize = 52.sp,
                 fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center,
             )
@@ -258,7 +260,7 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
         textStyle = TextStyle.Default.copy(
             fontSize = 52.sp,
             fontFamily = montserratFontFamily,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
         ),
     )
@@ -284,13 +286,14 @@ fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit){
                 color = colorResource(R.color.dark_black),
                 fontFamily = montserratFontFamily,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.SemiBold
             )
 
             Text(
                 text = alarmNameValue,
                 color = colorResource(R.color.grey),
                 fontFamily = montserratFontFamily,
+                fontWeight = FontWeight.Normal,
                 fontSize = 14.sp
             )
         }

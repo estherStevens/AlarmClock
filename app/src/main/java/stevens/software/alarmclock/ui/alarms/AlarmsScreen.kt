@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -64,6 +65,7 @@ fun AlarmsScreen(
     val uiState = alarmsViewModel.uiState.collectAsStateWithLifecycle()
     Alarms(
         alarms = uiState.value.alarms,
+        isLoading = uiState.value.isLoading,
         onAddAlarmClicked = onAddAlarmClicked
     )
 }
@@ -72,6 +74,7 @@ fun AlarmsScreen(
 @Composable
 fun Alarms(
     alarms: List<Alarm>,
+    isLoading: Boolean,
     onAddAlarmClicked: () -> Unit
 ) {
     Box(
@@ -89,19 +92,30 @@ fun Alarms(
                 fontWeight = FontWeight.Medium,
             )
 
-            if (alarms.isEmpty()) {
-                EmptyState(modifier = Modifier.weight(1f))
+            if(isLoading) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(80.dp),
+                        color = colorResource(R.color.blue)
+                    )
+                }
+
             } else {
-                LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(alarms) { alarm ->
-                        AlarmCard(
-                            alarmName = alarm.name,
-                            alarmHour = alarm.hour,
-                            alarmMinute = alarm.minute
-                        )
+                if (alarms.isEmpty()) {
+                    EmptyState(modifier = Modifier.weight(1f))
+                } else {
+                    LazyColumn(modifier = Modifier.weight(1f)) {
+                        items(alarms) { alarm ->
+                            AlarmCard(
+                                alarmName = alarm.name,
+                                alarmHour = alarm.hour,
+                                alarmMinute = alarm.minute
+                            )
+                        }
                     }
                 }
             }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -310,6 +324,7 @@ fun AlarmsScreenPreview() {
     MaterialTheme {
         Alarms (
             alarms = listOf(Alarm(name = "Work", hour = "00", minute = "00")),
+            isLoading = true,
             onAddAlarmClicked = {}
         )
     }
