@@ -39,14 +39,18 @@ import stevens.software.alarmclock.R
 
 
 @Composable
-fun AlarmsScreen(onAddAlarmClicked: () -> Unit) {
-    Alarms(onAddAlarmClicked = onAddAlarmClicked)
+fun AlarmsScreen(
+    alarmsViewModel: AlarmsViewModel = viewModel(),
+    onAddAlarmClicked: () -> Unit
+) {
+    Alarms(onAddAlarmClicked = onAddAlarmClicked,
+        alarmsViewModel = alarmsViewModel)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Alarms(
-    alarmsViewModel: AlarmsViewModel = viewModel(),
+    alarmsViewModel: AlarmsViewModel,
     onAddAlarmClicked: () -> Unit
 ) {
     val uiState = alarmsViewModel.uiState.collectAsStateWithLifecycle()
@@ -241,12 +245,13 @@ val montserratFontFamily = FontFamily(
     Font(R.font.montserrat_regular)
 )
 
-@Composable
-@Preview(showSystemUi = true)
-fun AlarmsScreenPreview() {
-    MaterialTheme {
-        Alarms(
-            onAddAlarmClicked = {}
-        )
-    }
-}
+//@Composable
+//@Preview(showSystemUi = true)
+//fun AlarmsScreenPreview() {
+//    MaterialTheme {
+//        Alarms(
+//            {}
+//            onAddAlarmClicked = {}
+//        )
+//    }
+//}
