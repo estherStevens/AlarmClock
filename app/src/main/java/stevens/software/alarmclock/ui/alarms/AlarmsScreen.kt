@@ -3,9 +3,12 @@ package stevens.software.alarmclock.ui.alarms
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,11 +18,25 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+
+
+
+
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,26 +51,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.R
+import stevens.software.alarmclock.data.Alarm
 
 
 @Composable
 fun AlarmsScreen(
-    alarmsViewModel: AlarmsViewModel = viewModel(),
-    onAddAlarmClicked: () -> Unit
+    onAddAlarmClicked: () -> Unit,
+    alarmsViewModel: AlarmsViewModel = koinViewModel()
 ) {
-    Alarms(onAddAlarmClicked = onAddAlarmClicked,
-        alarmsViewModel = alarmsViewModel)
+    val uiState = alarmsViewModel.uiState.collectAsStateWithLifecycle()
+    Alarms(
+        alarms = uiState.value.alarms,
+        onAddAlarmClicked = onAddAlarmClicked
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Alarms(
-    alarmsViewModel: AlarmsViewModel,
+    alarms: List<Alarm>,
     onAddAlarmClicked: () -> Unit
 ) {
-    val uiState = alarmsViewModel.uiState.collectAsStateWithLifecycle()
     Box(
         modifier = Modifier
             .safeDrawingPadding()
@@ -66,17 +86,18 @@ fun Alarms(
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp),
                 fontSize = 24.sp,
                 fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
             )
 
-            if (uiState.value.alarms.isEmpty()) {
+            if (alarms.isEmpty()) {
                 EmptyState(modifier = Modifier.weight(1f))
             } else {
                 LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(uiState.value.alarms) { alarm ->
+                    items(alarms) { alarm ->
                         AlarmCard(
-                            alarmTime = alarm.time,
-                            selectedDays = alarm.selectedDays
+                            alarmName = alarm.name,
+                            alarmHour = alarm.hour,
+                            alarmMinute = alarm.minute
                         )
                     }
                 }
@@ -106,31 +127,43 @@ fun Alarms(
 
 @Composable
 fun AlarmCard(
-    alarmTime: String,
-    selectedDays: List<SelectedDaysOfTheWeek>
+    alarmName: String,
+    alarmHour: String,
+    alarmMinute: String,
+    /*electedDays: List<SelectedDaysOfTheWeek>*/
 ) {
     Box(
         modifier = Modifier
             .padding(16.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(color = colorResource(R.color.white))
-            .padding(16.dp)
+            .padding(top = 10.dp, bottom = 16.dp)
+            .padding(horizontal = 16.dp)
             .fillMaxWidth()
     ) {
-        Column {
+
+        Column{
+            Row(modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween) {
+
+                Text(
+                    text = alarmName,
+                    fontSize = 16.sp,
+                    fontFamily = montserratFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colorResource(R.color.dark_black),
+                )
+                AlarmSwitch(
+                    onAlarmChanged = {}
+                )
+            }
+
             Text(
-                text = stringResource(id = R.string.wake_up),
-                fontSize = 16.sp,
-                fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(R.color.dark_black)
-            )
-            Spacer(Modifier.size(10.dp))
-            Text(
-                text = alarmTime,
+                text = "$alarmHour:$alarmMinute" ,
                 fontSize = 42.sp,
                 fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = colorResource(R.color.dark_black)
             )
             Spacer(Modifier.size(8.dp))
@@ -138,24 +171,46 @@ fun AlarmCard(
                 text = "Alarm in 30 min",
                 fontSize = 14.sp,
                 fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = colorResource(R.color.grey)
             )
-            Spacer(Modifier.size(8.dp))
+            /*Spacer(Modifier.size(8.dp))*/
             /*AlarmDayPills(selectedDays = selectedDays)*/
-            Spacer(Modifier.size(8.dp))
-            Text(
+            /*Spacer(Modifier.size(8.dp))*/
+            /*Text(
                 text = "Go to bed at 02:00AM to get 8h of sleep",
                 fontSize = 14.sp,
                 fontFamily = montserratFontFamily,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
-            )
+            )*/
 
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AlarmSwitch(
+    onAlarmChanged: (Boolean) -> Unit
+){
+    var checked by remember { mutableStateOf(true) }
+
+    Switch(
+        checked = checked,
+        onCheckedChange = {
+            checked = it
+        },
+        modifier = Modifier.padding(top = 6.dp),
+        colors = SwitchDefaults.colors().copy(
+            checkedTrackColor = colorResource(R.color.blue),
+            uncheckedTrackColor = colorResource(R.color.very_light_blue),
+            uncheckedThumbColor = colorResource(R.color.white),
+            uncheckedBorderColor = colorResource(R.color.very_light_blue)
+        )
+    )
+
+}
 /*@Composable
 fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>) {
     var isMondaySelected: Boolean = false
@@ -233,7 +288,7 @@ fun EmptyState(modifier: Modifier) {
                 text = stringResource(R.string.empty_state_text),
                 fontFamily = montserratFontFamily,
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = colorResource(R.color.dark_black),
                 textAlign = TextAlign.Center
             )
@@ -242,16 +297,20 @@ fun EmptyState(modifier: Modifier) {
 }
 
 val montserratFontFamily = FontFamily(
-    Font(R.font.montserrat_regular)
+    Font(R.font.montserrat_regular, FontWeight.Normal),
+    Font(R.font.montserrat_bold, FontWeight.Bold),
+    Font(R.font.montserrat_semibold, FontWeight.SemiBold),
+    Font(R.font.montserrat_medium, FontWeight.Medium)
+
 )
 
-//@Composable
-//@Preview(showSystemUi = true)
-//fun AlarmsScreenPreview() {
-//    MaterialTheme {
-//        Alarms(
-//            {}
-//            onAddAlarmClicked = {}
-//        )
-//    }
-//}
+@Composable
+@Preview(showSystemUi = true)
+fun AlarmsScreenPreview() {
+    MaterialTheme {
+        Alarms (
+            alarms = listOf(Alarm(name = "Work", hour = "00", minute = "00")),
+            onAddAlarmClicked = {}
+        )
+    }
+}

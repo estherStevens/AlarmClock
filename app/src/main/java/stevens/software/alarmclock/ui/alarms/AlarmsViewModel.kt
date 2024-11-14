@@ -1,34 +1,86 @@
 package stevens.software.alarmclock.ui.alarms
 
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import stevens.software.alarmclock.data.Alarm
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
+import stevens.software.alarmclock.ui.create_alarm.CreateAlarmUiState
 import java.time.LocalTime
 
 class AlarmsViewModel(val alarmsRepository: AlarmsRepository): ViewModel() {
 
-    val uiState = MutableStateFlow<AlarmsUiState>(
+    private val isLoading = MutableStateFlow<Boolean>(true)
+
+    val uiState = combine(
+        alarmsRepository.getAllAlarms(),
+        isLoading
+    ) { alarms, isLoading ->
         AlarmsUiState(
-            alarms = mockAlarms()
+            alarms = alarms,
+            isLoading = false
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        AlarmsUiState(
+            alarms = emptyList(),
+            isLoading = true
         )
     )
+
+
+//    val uiState = MutableStateFlow<AlarmsUiState>(
+//        AlarmsUiState(
+//            alarms = mockAlarms()
+//        )
+//    ).onStart {
+//        alarmsRepository.getAllAlarms()
+//    }
+
+
+//
+//    val i = alarmsRepository.getAllAlarms().collect{
+//
+//    }
+//    val uiStatee: MutableStateFlow<AlarmsUiState> = alarmsRepository.getAllAlarms().map {
+//        AlarmsUiState(
+//
+//        )
+//
+//    }.stateIn(
+//        viewModelScope,
+//        SharingStarted.Eagerly,
+//        AlarmsUiState(alarms = emptyList())
+//    )
+
+
+//    val uiState = alarmsRepository.getAllAlarms().map{
+//
+//    }
 //
     init {
-        viewModelScope.launch{
-
-           val o =  alarmsRepository.getAllAlarms()
-            o.collect{
-                    value -> println("Collected $value")
-            }
-        }
+//        viewModelScope.launch{
+//
+//           val o =  alarmsRepository.getAllAlarms()
+//            o.collect{
+//                    value -> println("Collected $value")
+//            }
+//        }
 //        alarmsRepository.getAllAlarms()
     }
 
-    fun mockAlarms() = emptyList<AlarmDto>()
+//    fun mockAlarms() = emptyList<AlarmDto>()
 //        listOf<Alarm>(
 //        Alarm(
 //            time = "10:00",
@@ -51,14 +103,24 @@ class AlarmsViewModel(val alarmsRepository: AlarmsRepository): ViewModel() {
 //            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
 //        ),
 //    )
+
+//
+//    fun Alarm.toCreateAlarmUiState() =
+//        AlarmsUiState(
+//            alarms = this,
+//        )
+
 }
 
-data class AlarmsUiState(val alarms: List<AlarmDto>)
-
-data class AlarmDto(
-    val time: String,
-    val selectedDays: List<SelectedDaysOfTheWeek>
+data class AlarmsUiState(
+    val alarms: List<Alarm>,
+    val isLoading: Boolean
 )
+
+//data class AlarmDto(
+//    val time: String,
+//    val selectedDays: List<SelectedDaysOfTheWeek>
+//)
 
 
 

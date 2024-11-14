@@ -24,9 +24,7 @@ fun MainNavController() {
 
     NavHost(navController = navController, startDestination = Alarms) {
         composable<Alarms> {
-            val alarmsViewModel: AlarmsViewModel = koinViewModel()
             AlarmsScreen(
-                alarmsViewModel = alarmsViewModel,
                 onAddAlarmClicked = { navController.navigate(CreateAlarm) }
             )
         }
