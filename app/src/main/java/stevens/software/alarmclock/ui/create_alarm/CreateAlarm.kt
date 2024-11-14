@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,23 +50,37 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
+import org.koin.androidx.compose.koinViewModel
+import stevens.software.alarmclock.Alarms
+import stevens.software.alarmclock.CreateAlarm
 import stevens.software.alarmclock.R
 import stevens.software.alarmclock.ui.alarms.montserratFontFamily
 
 @Composable
-fun CreateAlarmScreen(onCloseButtonClicked: () -> Unit){
+fun CreateAlarmScreen(
+        onCloseButtonClicked: () -> Unit,
+        onSaveAlarmSuccess: () -> Unit){
     CreateAlarm(
-        onCloseButtonClicked = onCloseButtonClicked
+        onCloseButtonClicked = onCloseButtonClicked,
+        onSaveAlarmSuccess = onSaveAlarmSuccess
     )
 }
 
 @Composable
 fun CreateAlarm(
-    createAlarmViewModel: CreateAlarmViewModel = viewModel(),
-    onCloseButtonClicked: () -> Unit = {}
+    createAlarmViewModel: CreateAlarmViewModel = koinViewModel(),
+    onCloseButtonClicked: () -> Unit = {},
+    onSaveAlarmSuccess: () -> Unit = {}
 ) {
     val uiState = createAlarmViewModel.uiState.collectAsStateWithLifecycle()
     var openChangeAlarmNameDialog = remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.value.successSavingAlarm) {
+        if(uiState.value.successSavingAlarm == true) {
+            onSaveAlarmSuccess()
+        }
+    }
 
     if(openChangeAlarmNameDialog.value) {
         AddAlarmNameDialog(
@@ -104,7 +119,7 @@ fun CreateAlarm(
 
 
                 Button(
-                    onClick = {},
+                    onClick = { createAlarmViewModel.saveAlarm() },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if(uiState.value.saveButtonEnabled) colorResource(R.color.blue) else colorResource(
                             R.color.light_grey)

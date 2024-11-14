@@ -5,7 +5,7 @@ import stevens.software.alarmclock.data.Alarm
 
 interface AlarmsRepository {
 
-    suspend fun addAlarm(alarm: Alarm)
+    suspend fun addAlarm(alarm: Alarm): Result<Unit>
 
     suspend fun deleteAlarm(alarm: Alarm)
 

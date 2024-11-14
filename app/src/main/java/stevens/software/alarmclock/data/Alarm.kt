@@ -8,9 +8,10 @@ import java.time.LocalTime
 @Entity(tableName = "alarms")
 data class Alarm(
     @PrimaryKey(autoGenerate = true)
-    val id: Int,
-    val alarmName: String,
-//    val alarmTime: LocalTime
+    val id: Int = 0,
+    val name: String,
+    val hour: String,
+    val minute: String,
 )
 
 class Converters {

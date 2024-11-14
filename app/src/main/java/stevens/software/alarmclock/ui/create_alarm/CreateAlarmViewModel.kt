@@ -6,15 +6,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.update
+import stevens.software.alarmclock.data.Alarm
+import stevens.software.alarmclock.data.repositories.AlarmsRepository
 
-class CreateAlarmViewModel: ViewModel() {
+class CreateAlarmViewModel(val alarmsRepository: AlarmsRepository): ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateAlarmUiState(
         alarmHour = "",
         alarmMinute = "",
         saveButtonEnabled = false,
-        alarmName = ""
-
+        alarmName = "",
+        errorSavingAlarm = false,
+        successSavingAlarm = false
     ))
     val uiState: StateFlow<CreateAlarmUiState> = _uiState
 
@@ -51,6 +54,34 @@ class CreateAlarmViewModel: ViewModel() {
         }
     }
 
+    fun saveAlarm(){
+        viewModelScope.launch{
+            val result = alarmsRepository.addAlarm(uiState.value.toAlarm())
+            if(result == Result.success(Unit)) {
+                _uiState.update {
+                    it.copy(
+                        successSavingAlarm = true,
+                    )
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        errorSavingAlarm = true,
+                    )
+                }
+            }
+        }
+    }
+
+
+    fun CreateAlarmUiState.toAlarm() =
+         Alarm(
+            name = this.alarmName,
+            hour = this.alarmHour,
+            minute = this.alarmMinute
+        )
+
+
 }
 
 
@@ -59,5 +90,7 @@ data class CreateAlarmUiState(
     var alarmHour: String,
     val alarmMinute: String,
     val saveButtonEnabled: Boolean,
-    val alarmName: String
+    val alarmName: String,
+    val successSavingAlarm: Boolean,
+    val errorSavingAlarm: Boolean
 )

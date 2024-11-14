@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @TypeConverters(Converters::class)
-@Database(entities = [Alarm::class], version = 1)
+@Database(entities = [Alarm::class], version = 2)
 abstract class AlarmsDatabase : RoomDatabase() {
 
     abstract fun alarmDao(): AlarmDao
@@ -20,6 +20,7 @@ abstract class AlarmsDatabase : RoomDatabase() {
         fun getDatabase(context: Context): AlarmsDatabase {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, AlarmsDatabase::class.java, "alarms_database")
+                    .fallbackToDestructiveMigration()
                     .build()
                     .also { Instance = it }
             }

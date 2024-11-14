@@ -32,7 +32,8 @@ fun MainNavController() {
         }
         composable<CreateAlarm> {
             CreateAlarmScreen(
-                onCloseButtonClicked = { navController.popBackStack() }
+                onCloseButtonClicked = { navController.popBackStack() },
+                onSaveAlarmSuccess = { navController.navigate(Alarms) }
             )
         }
     }

@@ -19,8 +19,8 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext.get
 
 val appModule = module {
-    viewModel { AlarmsViewModel(get<AlarmsRepository>()) }
-    viewModel { CreateAlarmViewModel() }
+    viewModel { AlarmsViewModel(get()) }
+    viewModel { CreateAlarmViewModel(get()) }
     singleOf(::AlarmsRepositoryImp) { bind<AlarmsRepository>() }
     single {
         Room.databaseBuilder(

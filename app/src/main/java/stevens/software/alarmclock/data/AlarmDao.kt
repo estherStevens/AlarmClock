@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 interface AlarmDao {
 
     @Insert
-    suspend fun insertAlarm(alarm: Alarm)
+    suspend fun insertAlarm(alarm: Alarm) : Long
 
     @Delete
     suspend fun deleteAlarm(alarm: Alarm)

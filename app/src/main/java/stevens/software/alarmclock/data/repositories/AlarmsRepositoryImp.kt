@@ -2,16 +2,18 @@ package stevens.software.alarmclock.data.repositories
 
 import android.content.Context
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import stevens.software.alarmclock.data.Alarm
-import stevens.software.alarmclock.data.AlarmDao
 import stevens.software.alarmclock.data.AlarmsDatabase
 
 class AlarmsRepositoryImp(val context: Context): AlarmsRepository {
     private val alarmDao = AlarmsDatabase.getDatabase(context).alarmDao()
 
-    override suspend fun addAlarm(alarm: Alarm) {
-        alarmDao.insertAlarm(alarm)
+    override suspend fun addAlarm(alarm: Alarm) : Result<Unit> {
+        val result = alarmDao.insertAlarm(alarm)
+        return when {
+            result == -1L ->  Result.failure(Throwable())
+            else -> Result.success(Unit)
+        }
     }
 
     override suspend fun deleteAlarm(alarm: Alarm) {
