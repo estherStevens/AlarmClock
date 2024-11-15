@@ -17,6 +17,9 @@ kotlin_serialization_plugin = "1.9.0"
 compose_lifecycle = "2.6.1"
 room = "2.6.1"
 ksp = "2.0.0-1.0.22"
+core_splashscreen = "1.0.1"
+
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +46,7 @@ compose-lifecycle = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core_splashscreen" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

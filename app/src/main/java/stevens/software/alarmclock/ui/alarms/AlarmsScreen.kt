@@ -324,7 +324,7 @@ fun AlarmsScreenPreview() {
     MaterialTheme {
         Alarms (
             alarms = listOf(Alarm(name = "Work", hour = "00", minute = "00")),
-            isLoading = true,
+            isLoading = false,
             onAddAlarmClicked = {}
         )
     }

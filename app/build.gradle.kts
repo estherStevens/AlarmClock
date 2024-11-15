@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.compose.lifecycle)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
+    implementation(libs.core.splashscreen)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
