@@ -1,5 +1,6 @@
 package stevens.software.alarmclock.ui.create_alarm
 
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +17,7 @@ import stevens.software.alarmclock.data.repositories.AlarmsRepository
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import stevens.software.alarmclock.R
 import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
@@ -97,13 +99,15 @@ class CreateAlarmViewModel(
     }
 
 
-    fun CreateAlarmUiState.toAlarm() =
-        Alarm(
-            name = this.alarmName,
+    fun CreateAlarmUiState.toAlarm() : Alarm {
+        val name = if(this.alarmName.isEmpty()) "Alarm" else this.alarmName
+        return Alarm(
+            name = name,
             hour = this.alarmHour,
             minute = this.alarmMinute,
             enabled = true
         )
+    }
 
 }
 

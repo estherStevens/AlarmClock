@@ -8,6 +8,7 @@
     <string name="save_alarm_name">Save</string>
     <string name="empty_state_text">It\'s empty! Add the first alarm so you don\'t miss an important moment!</string>
     <string name="turn_off_alarm">Turn Off</string>
+    <string name="alarm">Alarm</string>
 
 
 

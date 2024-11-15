@@ -341,7 +341,7 @@ val montserratFontFamily = FontFamily(
 fun AlarmsScreenPreview() {
     MaterialTheme {
         Alarms (
-            alarms = listOf(Alarm(name = "Work", hour = "00", minute = "00", enabled = true)),
+            alarms = listOf(Alarm(name = "", hour = "00", minute = "00", enabled = true)),
             isLoading = false,
             onAddAlarmClicked = { },
             onAlarmToggled = {_,_ -> }
