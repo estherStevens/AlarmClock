@@ -7,9 +7,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.update
 import stevens.software.alarmclock.data.Alarm
+import stevens.software.alarmclock.data.AlarmItem
+import stevens.software.alarmclock.data.AlarmScheduler
+import stevens.software.alarmclock.data.AlarmSchedulerImp
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
-class CreateAlarmViewModel(val alarmsRepository: AlarmsRepository): ViewModel() {
+class CreateAlarmViewModel(
+    val alarmsRepository: AlarmsRepository,
+    val alarmScheduler: AlarmScheduler
+    ): ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateAlarmUiState(
         alarmHour = "",
@@ -58,11 +71,21 @@ class CreateAlarmViewModel(val alarmsRepository: AlarmsRepository): ViewModel() 
         viewModelScope.launch{
             val result = alarmsRepository.addAlarm(uiState.value.toAlarm())
             if(result == Result.success(Unit)) {
-                _uiState.update {
-                    it.copy(
-                        successSavingAlarm = true,
-                    )
-                }
+                _uiState.update { it.copy(successSavingAlarm = true) }
+
+//                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+                val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val timeAlarmScheduledFor = LocalDateTime.parse(
+                    "${currentDate}T${uiState.value.alarmHour}:${uiState.value.alarmMinute}"
+                )
+
+                //set alarm on os
+                alarmScheduler.schedule(AlarmItem(
+                    name = uiState.value.alarmName,
+                    time = timeAlarmScheduledFor
+                 )
+                )
             } else {
                 _uiState.update {
                     it.copy(
@@ -80,8 +103,6 @@ class CreateAlarmViewModel(val alarmsRepository: AlarmsRepository): ViewModel() 
             hour = this.alarmHour,
             minute = this.alarmMinute
         )
-
-
 }
 
 

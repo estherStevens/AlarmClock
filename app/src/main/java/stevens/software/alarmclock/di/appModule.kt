@@ -7,6 +7,9 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
+import stevens.software.alarmclock.data.AlarmBroadcastReceiver
+import stevens.software.alarmclock.data.AlarmScheduler
+import stevens.software.alarmclock.data.AlarmSchedulerImp
 import stevens.software.alarmclock.data.AlarmsDatabase
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepositoryImp
@@ -20,8 +23,11 @@ import kotlin.coroutines.EmptyCoroutineContext.get
 
 val appModule = module {
     viewModel { AlarmsViewModel(get()) }
-    viewModel { CreateAlarmViewModel(get()) }
+    viewModel { CreateAlarmViewModel(get(), get()) }
     singleOf(::AlarmsRepositoryImp) { bind<AlarmsRepository>() }
+    singleOf(::AlarmSchedulerImp) { bind<AlarmScheduler>() }
+    singleOf(::AlarmBroadcastReceiver)
+
     single {
         Room.databaseBuilder(
             androidApplication(),
