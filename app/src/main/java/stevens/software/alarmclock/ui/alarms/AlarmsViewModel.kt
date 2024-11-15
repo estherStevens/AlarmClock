@@ -3,6 +3,7 @@ package stevens.software.alarmclock.ui.alarms
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,11 +16,16 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import stevens.software.alarmclock.data.Alarm
+import stevens.software.alarmclock.data.AlarmScheduler
+import stevens.software.alarmclock.data.AlarmTime
+import stevens.software.alarmclock.data.repositories.AlarmSchedulerRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmUiState
 import java.time.LocalTime
 
-class AlarmsViewModel(val alarmsRepository: AlarmsRepository): ViewModel() {
+class AlarmsViewModel(
+    val alarmsRepository: AlarmsRepository,
+    val alarmSchedulerRepository: AlarmSchedulerRepository): ViewModel() {
 
     private val isLoading = MutableStateFlow<Boolean>(true)
 
@@ -39,6 +45,34 @@ class AlarmsViewModel(val alarmsRepository: AlarmsRepository): ViewModel() {
             isLoading = true
         )
     )
+
+    fun updateAlarm(alarmId: Int, isEnabled: Boolean){
+        viewModelScope.launch{
+            alarmsRepository.updateAlarm(alarmId, isEnabled)
+            val alarm = alarmsRepository.getAlarm(alarmId)
+            alarm.collect { it ->
+                when(it.enabled){
+                    true -> {
+                        alarmSchedulerRepository.scheduleAlarm(
+                            alarmId = it.id,
+                            alarmName = it.name,
+                            alarmTime = AlarmTime(alarmHour = it.hour, alarmMinute = it.minute)
+                        )
+                    }
+                    false -> {
+                        alarmSchedulerRepository.cancelAlarm(
+                            alarmName = it.name,
+                            alarmTime = AlarmTime(alarmHour = it.hour, alarmMinute = it.minute)
+                        )
+                    }
+                }
+//                alarmsRepository.updateAlarm()
+            }
+        }
+
+    }
+
+
 
 
 //    val uiState = MutableStateFlow<AlarmsUiState>(

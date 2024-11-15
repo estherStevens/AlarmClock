@@ -66,7 +66,10 @@ fun AlarmsScreen(
     Alarms(
         alarms = uiState.value.alarms,
         isLoading = uiState.value.isLoading,
-        onAddAlarmClicked = onAddAlarmClicked
+        onAddAlarmClicked = onAddAlarmClicked,
+        onAlarmToggled = { id, isEnabled ->
+            alarmsViewModel.updateAlarm(id, isEnabled)
+        }
     )
 }
 
@@ -75,7 +78,8 @@ fun AlarmsScreen(
 fun Alarms(
     alarms: List<Alarm>,
     isLoading: Boolean,
-    onAddAlarmClicked: () -> Unit
+    onAddAlarmClicked: () -> Unit,
+    onAlarmToggled: (Int, Boolean) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -107,9 +111,12 @@ fun Alarms(
                     LazyColumn(modifier = Modifier.weight(1f)) {
                         items(alarms) { alarm ->
                             AlarmCard(
+                                alarmId = alarm.id,
                                 alarmName = alarm.name,
                                 alarmHour = alarm.hour,
-                                alarmMinute = alarm.minute
+                                alarmMinute = alarm.minute,
+                                alarmEnabled = alarm.enabled,
+                                onAlarmToggled = onAlarmToggled
                             )
                         }
                     }
@@ -141,9 +148,12 @@ fun Alarms(
 
 @Composable
 fun AlarmCard(
+    alarmId: Int,
     alarmName: String,
     alarmHour: String,
     alarmMinute: String,
+    alarmEnabled: Boolean,
+    onAlarmToggled: (Int, Boolean) -> Unit
     /*electedDays: List<SelectedDaysOfTheWeek>*/
 ) {
     Box(
@@ -169,7 +179,13 @@ fun AlarmCard(
                     color = colorResource(R.color.dark_black),
                 )
                 AlarmSwitch(
-                    onAlarmChanged = {}
+                    alarmEnabled = alarmEnabled,
+                    onAlarmToggled = { isEnabled ->
+                        onAlarmToggled(
+                            alarmId,
+                            isEnabled
+                        )
+                    }
                 )
             }
 
@@ -206,14 +222,16 @@ fun AlarmCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmSwitch(
-    onAlarmChanged: (Boolean) -> Unit
+    alarmEnabled: Boolean,
+    onAlarmToggled: (Boolean) -> Unit
 ){
-    var checked by remember { mutableStateOf(true) }
+    var checked by remember { mutableStateOf(alarmEnabled) }
 
     Switch(
         checked = checked,
         onCheckedChange = {
             checked = it
+            onAlarmToggled(it)
         },
         modifier = Modifier.padding(top = 6.dp),
         colors = SwitchDefaults.colors().copy(
@@ -323,9 +341,10 @@ val montserratFontFamily = FontFamily(
 fun AlarmsScreenPreview() {
     MaterialTheme {
         Alarms (
-            alarms = listOf(Alarm(name = "Work", hour = "00", minute = "00")),
+            alarms = listOf(Alarm(name = "Work", hour = "00", minute = "00", enabled = true)),
             isLoading = false,
-            onAddAlarmClicked = {}
+            onAddAlarmClicked = { },
+            onAlarmToggled = {_,_ -> }
         )
     }
 }

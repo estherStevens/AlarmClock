@@ -16,8 +16,11 @@ interface AlarmDao {
     @Delete
     suspend fun deleteAlarm(alarm: Alarm)
 
-    @Update
-    suspend fun updateAlarm(alarm: Alarm)
+    @Query("Update alarms set enabled = :enabled where id = :id")
+    suspend fun updateAlarm(id: Int, enabled: Boolean)
+
+    @Query("Select * from alarms where id = :id")
+    fun getAlarm(id: Int) : Flow<Alarm>
 
     @Query("Select * from alarms")
     fun getAllAlarms() : Flow<List<Alarm>>

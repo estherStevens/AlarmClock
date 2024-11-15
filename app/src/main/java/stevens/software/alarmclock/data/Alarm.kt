@@ -12,6 +12,7 @@ data class Alarm(
     val name: String,
     val hour: String,
     val minute: String,
+    val enabled: Boolean
 )
 
 class Converters {
