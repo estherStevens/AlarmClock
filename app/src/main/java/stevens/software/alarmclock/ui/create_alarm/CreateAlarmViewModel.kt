@@ -22,20 +22,22 @@ import java.util.Locale
 class CreateAlarmViewModel(
     val alarmsRepository: AlarmsRepository,
     val alarmScheduler: AlarmScheduler
-    ): ViewModel() {
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(CreateAlarmUiState(
-        alarmHour = "",
-        alarmMinute = "",
-        saveButtonEnabled = false,
-        alarmName = "",
-        errorSavingAlarm = false,
-        successSavingAlarm = false
-    ))
+    private val _uiState = MutableStateFlow(
+        CreateAlarmUiState(
+            alarmHour = "",
+            alarmMinute = "",
+            saveButtonEnabled = false,
+            alarmName = "",
+            errorSavingAlarm = false,
+            successSavingAlarm = false
+        )
+    )
     val uiState: StateFlow<CreateAlarmUiState> = _uiState
 
-    fun updateAlarmHour(alarmHour: String){
-        viewModelScope.launch{
+    fun updateAlarmHour(alarmHour: String) {
+        viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     alarmHour = alarmHour,
@@ -45,8 +47,8 @@ class CreateAlarmViewModel(
         }
     }
 
-    fun updateAlarmMinute(alarmMinute: String){
-        viewModelScope.launch{
+    fun updateAlarmMinute(alarmMinute: String) {
+        viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     alarmMinute = alarmMinute,
@@ -57,8 +59,8 @@ class CreateAlarmViewModel(
     }
 
 
-    fun updateAlarmName(alarmName: String){
-        viewModelScope.launch{
+    fun updateAlarmName(alarmName: String) {
+        viewModelScope.launch {
             _uiState.update {
                 it.copy(
                     alarmName = alarmName,
@@ -67,24 +69,21 @@ class CreateAlarmViewModel(
         }
     }
 
-    fun saveAlarm(){
-        viewModelScope.launch{
+    fun saveAlarm() {
+        viewModelScope.launch {
             val result = alarmsRepository.addAlarm(uiState.value.toAlarm())
-            if(result == Result.success(Unit)) {
+            if (result == Result.success(Unit)) {
                 _uiState.update { it.copy(successSavingAlarm = true) }
-
-//                String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
                 val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                 val timeAlarmScheduledFor = LocalDateTime.parse(
                     "${currentDate}T${uiState.value.alarmHour}:${uiState.value.alarmMinute}"
                 )
-
-                //set alarm on os
-                alarmScheduler.schedule(AlarmItem(
-                    name = uiState.value.alarmName,
-                    time = timeAlarmScheduledFor
-                 )
+                alarmScheduler.schedule(
+                    AlarmItem(
+                        name = uiState.value.alarmName,
+                        time = timeAlarmScheduledFor
+                    )
                 )
             } else {
                 _uiState.update {
@@ -98,13 +97,12 @@ class CreateAlarmViewModel(
 
 
     fun CreateAlarmUiState.toAlarm() =
-         Alarm(
+        Alarm(
             name = this.alarmName,
             hour = this.alarmHour,
             minute = this.alarmMinute
         )
 }
-
 
 
 data class CreateAlarmUiState(

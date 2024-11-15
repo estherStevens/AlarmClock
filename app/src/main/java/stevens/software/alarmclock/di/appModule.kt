@@ -18,12 +18,14 @@ import stevens.software.alarmclock.data.repositories.AlarmsRepositoryImp
 //import stevens.software.alarmclock.data.repositories.AlarmsRepositoryImp
 import stevens.software.alarmclock.ui.alarms.AlarmsViewModel
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmViewModel
+import stevens.software.alarmclock.ui.triggeredAlarm.TriggeredAlarmViewModel
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext.get
 
 val appModule = module {
     viewModel { AlarmsViewModel(get()) }
     viewModel { CreateAlarmViewModel(get(), get()) }
+    viewModel { TriggeredAlarmViewModel(get()) }
     singleOf(::AlarmsRepositoryImp) { bind<AlarmsRepository>() }
     singleOf(::AlarmSchedulerImp) { bind<AlarmScheduler>() }
     singleOf(::AlarmBroadcastReceiver)

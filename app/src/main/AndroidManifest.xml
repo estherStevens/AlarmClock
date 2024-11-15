@@ -24,6 +24,12 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <data android:scheme="myapp"/>
+                <data android:host="alarm_triggered"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.VIEW"/>
+            </intent-filter>
         </activity>
         <receiver android:name=".data.AlarmBroadcastReceiver"/>
     </application>
