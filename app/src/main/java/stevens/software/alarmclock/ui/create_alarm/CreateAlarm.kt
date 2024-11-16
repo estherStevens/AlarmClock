@@ -1,5 +1,7 @@
 package stevens.software.alarmclock.ui.create_alarm
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -55,18 +57,22 @@ import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.Alarms
 import stevens.software.alarmclock.CreateAlarm
 import stevens.software.alarmclock.R
+import stevens.software.alarmclock.ui.alarms.RemainingTime
 import stevens.software.alarmclock.ui.alarms.montserratFontFamily
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarmScreen(
-        onCloseButtonClicked: () -> Unit,
-        onSaveAlarmSuccess: () -> Unit){
+    onCloseButtonClicked: () -> Unit,
+    onSaveAlarmSuccess: () -> Unit
+) {
     CreateAlarm(
         onCloseButtonClicked = onCloseButtonClicked,
         onSaveAlarmSuccess = onSaveAlarmSuccess
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarm(
     createAlarmViewModel: CreateAlarmViewModel = koinViewModel(),
@@ -77,14 +83,14 @@ fun CreateAlarm(
     var openChangeAlarmNameDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.value.successSavingAlarm) {
-        if(uiState.value.successSavingAlarm == true) {
+        if (uiState.value.successSavingAlarm == true) {
             onSaveAlarmSuccess()
         }
     }
 
-    if(openChangeAlarmNameDialog.value) {
+    if (openChangeAlarmNameDialog.value) {
         AddAlarmNameDialog(
-            alarmName =  uiState.value.alarmName,
+            alarmName = uiState.value.alarmName,
             onSaveClicked = {
                 createAlarmViewModel.updateAlarmName(it)
                 openChangeAlarmNameDialog.value = false
@@ -121,8 +127,9 @@ fun CreateAlarm(
                 Button(
                     onClick = { createAlarmViewModel.saveAlarm() },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(uiState.value.saveButtonEnabled) colorResource(R.color.blue) else colorResource(
-                            R.color.light_grey)
+                        containerColor = if (uiState.value.saveButtonEnabled) colorResource(R.color.blue) else colorResource(
+                            R.color.light_grey
+                        )
                     ),
                     enabled = uiState.value.saveButtonEnabled
                 ) {
@@ -138,6 +145,7 @@ fun CreateAlarm(
             AlarmTimePicker(
                 hour = uiState.value.alarmHour,
                 minute = uiState.value.alarmMinute,
+                timeRemaining = uiState.value.timeRemaining,
                 onHourChanged = {
                     createAlarmViewModel.updateAlarmHour(it)
                 },
@@ -145,6 +153,7 @@ fun CreateAlarm(
                     createAlarmViewModel.updateAlarmMinute(it)
                 },
             )
+
             Spacer(Modifier.size(16.dp))
             AlarmName(
                 alarmNameValue = uiState.value.alarmName,
@@ -160,10 +169,13 @@ fun CreateAlarm(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlarmTimePicker(hour: String,
-                    minute: String,
-                    onHourChanged: (String) -> Unit,
-                    onMinuteChanged: (String) -> Unit) {
+fun AlarmTimePicker(
+    hour: String,
+    minute: String,
+    timeRemaining: RemainingTime?,
+    onHourChanged: (String) -> Unit,
+    onMinuteChanged: (String) -> Unit
+) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -172,38 +184,57 @@ fun AlarmTimePicker(hour: String,
             .padding(vertical = 24.dp),
         contentAlignment = Alignment.Center
     ) {
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HourTimePicker(
-                alarmHour = hour,
-                onHourChanged = { it ->
-                    onHourChanged(it)
-                },
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HourTimePicker(
+                    alarmHour = hour,
+                    onHourChanged = { it ->
+                        onHourChanged(it)
+                    },
+                )
+                Text(
+                    text = ":",
+                    color = colorResource(R.color.grey),
+                    fontSize = 52.sp,
+                    fontFamily = montserratFontFamily,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
+                MinuteTimePicker(
+                    alarmMinute = minute,
+                    onMinuteChanged = { it ->
+                        onMinuteChanged(it)
+                    }
+                )
+            }
+            Spacer(Modifier.size(16.dp))
             Text(
-                text = ":",
-                color = colorResource(R.color.grey),
-                fontSize = 52.sp,
+                text = getTimeRemainingString(timeRemaining?.hours ?: 0, timeRemaining?.minutes ?: 0),
                 fontFamily = montserratFontFamily,
-                modifier = Modifier.padding(horizontal = 10.dp)
-            )
-            MinuteTimePicker(
-                alarmMinute = minute,
-                onMinuteChanged = { it ->
-                    onMinuteChanged(it)
-                }
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = colorResource(R.color.grey)
             )
         }
     }
 
 }
 
+fun getTimeRemainingString(hour: Int, minute: Int): String{
+    val hoursRemaining = if(hour == 0) "" else "${hour}h "
+    val minutesRemaining = if(minute == 0) "" else "${minute}mins"
+    if(hour == 0  && minute == 0) return ""
+    return "Alarm in $hoursRemaining$minutesRemaining"
+}
+
+
 @Composable
-fun HourTimePicker(alarmHour: String, onHourChanged: (String) -> Unit){
+fun HourTimePicker(alarmHour: String, onHourChanged: (String) -> Unit) {
     val regex = Regex("^(\\s*|([0-9]|0[0-9]|1[0-9]|2[0-3]))\$")
     TimePickerItem(
         value = alarmHour,
@@ -213,7 +244,7 @@ fun HourTimePicker(alarmHour: String, onHourChanged: (String) -> Unit){
 }
 
 @Composable
-fun MinuteTimePicker(alarmMinute: String, onMinuteChanged: (String) -> Unit){
+fun MinuteTimePicker(alarmMinute: String, onMinuteChanged: (String) -> Unit) {
     val regex = Regex("^(\\s*|([0-9]|0[0-9]|[1-5][0-9]))$")
     TimePickerItem(
         value = alarmMinute,
@@ -228,7 +259,7 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
     TextField(
         value = value,
         onValueChange = {
-            if(it.matches(regex)) {
+            if (it.matches(regex)) {
                 value = it
                 onValueChanged(it)
             }
@@ -242,7 +273,7 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
             unfocusedIndicatorColor = Color.Transparent,
             focusedTextColor = colorResource(R.color.blue),
             unfocusedTextColor = colorResource(R.color.blue),
-            focusedPlaceholderColor = colorResource(R.color.blue),
+            focusedPlaceholderColor = colorResource(R.color.grey),
             unfocusedPlaceholderColor = colorResource(R.color.grey),
             focusedContainerColor = colorResource(R.color.very_light_grey),
             unfocusedContainerColor = colorResource(R.color.very_light_grey),
@@ -267,7 +298,7 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
 }
 
 @Composable
-fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit){
+fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -277,10 +308,12 @@ fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit){
             }
             .fillMaxWidth(),
         contentAlignment = Alignment.Center
-    ){
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth()) {
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
             Text(
                 text = stringResource(R.string.alarm_name),
                 color = colorResource(R.color.dark_black),
@@ -301,7 +334,11 @@ fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit){
 }
 
 @Composable
-fun AddAlarmNameDialog(alarmName: String, onDismissDialog: () -> Unit, onSaveClicked: (String) -> Unit){
+fun AddAlarmNameDialog(
+    alarmName: String,
+    onDismissDialog: () -> Unit,
+    onSaveClicked: (String) -> Unit
+) {
     var alarmName by remember {
         mutableStateOf(alarmName)
     }
@@ -319,7 +356,9 @@ fun AddAlarmNameDialog(alarmName: String, onDismissDialog: () -> Unit, onSaveCli
 
             ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
             ) {
                 Text(
                     text = stringResource(R.string.alarm_name),
@@ -353,12 +392,14 @@ fun AddAlarmNameDialog(alarmName: String, onDismissDialog: () -> Unit, onSaveCli
                 onClick = {
                     onSaveClicked(alarmName)
                 },
-                modifier = Modifier.align(Alignment.End).padding(end = 16.dp, bottom = 16.dp),
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .padding(end = 16.dp, bottom = 16.dp),
                 colors = ButtonDefaults.buttonColors().copy(
                     containerColor = colorResource(R.color.blue),
                     contentColor = colorResource(R.color.white)
                 )
-            ){
+            ) {
                 Text(
                     text = stringResource(R.string.save_alarm_name),
                     fontFamily = montserratFontFamily,
@@ -376,6 +417,6 @@ fun AddAlarmNameDialog(alarmName: String, onDismissDialog: () -> Unit, onSaveCli
 @Composable
 fun CreateAlarmPreview() {
     MaterialTheme {
-        CreateAlarm()
+        AlarmTimePicker("00", "00", RemainingTime(10, 30), {}, {})
     }
 }

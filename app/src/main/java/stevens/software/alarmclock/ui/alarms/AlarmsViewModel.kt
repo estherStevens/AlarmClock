@@ -129,17 +129,11 @@ class AlarmsViewModel(
             }
         }
 
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm:ss");
-//        val formatter = DateTimeFormatter.ofPattern("HH:mm")
-//
         val a = LocalDateTime.ofInstant(calendar.toInstant(), calendar.timeZone.toZoneId())
         val elapsed = Duration.between(LocalDateTime.now(), a)
 
-
         val hoursRemaining = elapsed.toHours().toFloat()
         val minutesRemaining = elapsed.toMinutesPart()
-
-//        val i = LocalTime.parse("${hoursRemaining}:${minutesRemaining}", formatter)
 
         return AlarmDto(
             id = this.id,
