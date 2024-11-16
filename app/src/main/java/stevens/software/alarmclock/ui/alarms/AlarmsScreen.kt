@@ -1,5 +1,7 @@
 package stevens.software.alarmclock.ui.alarms
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -69,8 +71,11 @@ import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.R
 import stevens.software.alarmclock.data.Alarm
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AlarmsScreen(
     onAddAlarmClicked: () -> Unit,
@@ -93,11 +98,11 @@ fun AlarmsScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Alarms(
-    alarms: List<Alarm>,
+    alarms: List<AlarmDto>,
     isLoading: Boolean,
     onAddAlarmClicked: () -> Unit,
     onAlarmToggled: (Int, Boolean) -> Unit,
-    onDeleteAlarm: (Alarm) -> Unit
+    onDeleteAlarm: (AlarmDto) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -140,9 +145,10 @@ fun Alarms(
                             AlarmCard(
                                 alarmId = alarm.id,
                                 alarmName = alarm.name,
-                                alarmHour = alarm.hour,
-                                alarmMinute = alarm.minute,
+                                alarmHour = alarm.alarmTime.hour,
+                                alarmMinute = alarm.alarmTime.minute,
                                 alarmEnabled = alarm.enabled,
+                                timeRemaining = alarm.timeRemaining,
                                 onAlarmToggled = onAlarmToggled
                             )
                             }
@@ -178,9 +184,10 @@ fun Alarms(
 fun AlarmCard(
     alarmId: Int,
     alarmName: String,
-    alarmHour: String,
-    alarmMinute: String,
+    alarmHour: Int,
+    alarmMinute: Int,
     alarmEnabled: Boolean,
+    timeRemaining: RemainingTime,
     onAlarmToggled: (Int, Boolean) -> Unit
     /*electedDays: List<SelectedDaysOfTheWeek>*/
 ) {
@@ -217,8 +224,10 @@ fun AlarmCard(
                 )
             }
 
+            val alarmMinuteFormatted = String.format("%02d", alarmMinute)
+            val alarmHourFormatted = String.format("%02d", alarmHour)
             Text(
-                text = "$alarmHour:$alarmMinute" ,
+                text = "$alarmHourFormatted:$alarmMinuteFormatted" ,
                 fontSize = 42.sp,
                 fontFamily = montserratFontFamily,
                 fontWeight = FontWeight.Medium,
@@ -226,7 +235,7 @@ fun AlarmCard(
             )
             Spacer(Modifier.size(8.dp))
             Text(
-                text = "Alarm in 30 min",
+                text = getTimeRemainingString(timeRemaining.hours, timeRemaining.minutes),
                 fontSize = 14.sp,
                 fontFamily = montserratFontFamily,
                 fontWeight = FontWeight.Medium,
@@ -245,6 +254,12 @@ fun AlarmCard(
 
         }
     }
+}
+
+fun getTimeRemainingString(hour: Int, minute: Int): String{
+    val hoursRemaining = if(hour == 0) "" else "${hour}h "
+    val minutesRemaining = if(minute == 0) "" else "${minute}mins"
+    return "Alarm in $hoursRemaining$minutesRemaining"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -368,7 +383,7 @@ val montserratFontFamily = FontFamily(
 fun AlarmsScreenPreview() {
     MaterialTheme {
         Alarms (
-            alarms = listOf(Alarm(name = "", hour = "00", minute = "00", enabled = true)),
+            alarms = listOf(AlarmDto(name = "", enabled = true, timeRemaining = RemainingTime(10, 20), alarmTime = LocalDateTime.now())),
             isLoading = false,
             onAddAlarmClicked = { },
             onAlarmToggled = {_,_ -> },

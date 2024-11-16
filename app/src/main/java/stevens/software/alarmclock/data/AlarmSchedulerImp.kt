@@ -5,6 +5,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import java.time.LocalDateTime
 import java.time.ZoneId
 ;
 import java.util.Calendar
@@ -14,15 +15,15 @@ class AlarmSchedulerImp(val context: Context) : AlarmScheduler {
     val alarmManager: AlarmManager = context.getSystemService<AlarmManager>(AlarmManager::class.java)
 
     @SuppressLint("MissingPermission")
-    override fun schedule(alarmId: Int, alarmName: String, alarmTime: AlarmTime) {
+    override fun schedule(alarmId: Int, alarmName: String, alarmTime: LocalDateTime) {
         val alarmIntent = Intent(context, AlarmBroadcastReceiver::class.java).apply {
             putExtra("TRIGGERED_ALARM_NAME", alarmName)
-            putExtra("TRIGGERED_ALARM_TIME", "${alarmTime.alarmHour}:${alarmTime.alarmMinute}")
+            putExtra("TRIGGERED_ALARM_TIME", "${alarmTime.hour}:${alarmTime.minute}")
         }
 
         val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, alarmTime.alarmHour.toInt())
-            set(Calendar.MINUTE, alarmTime.alarmMinute.toInt())
+            set(Calendar.HOUR_OF_DAY, alarmTime.hour.toInt())
+            set(Calendar.MINUTE, alarmTime.minute.toInt())
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
             if (timeInMillis <= System.currentTimeMillis()) {
