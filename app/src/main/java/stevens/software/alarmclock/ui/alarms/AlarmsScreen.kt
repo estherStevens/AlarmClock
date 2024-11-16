@@ -1,5 +1,9 @@
 package stevens.software.alarmclock.ui.alarms
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,9 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -25,6 +32,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -34,13 +44,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +65,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.R
 import stevens.software.alarmclock.data.Alarm
@@ -69,6 +83,9 @@ fun AlarmsScreen(
         onAddAlarmClicked = onAddAlarmClicked,
         onAlarmToggled = { id, isEnabled ->
             alarmsViewModel.updateAlarm(id, isEnabled)
+        },
+        onDeleteAlarm = { alarm ->
+            alarmsViewModel.deleteAlarm(alarm)
         }
     )
 }
@@ -79,7 +96,8 @@ fun Alarms(
     alarms: List<Alarm>,
     isLoading: Boolean,
     onAddAlarmClicked: () -> Unit,
-    onAlarmToggled: (Int, Boolean) -> Unit
+    onAlarmToggled: (Int, Boolean) -> Unit,
+    onDeleteAlarm: (Alarm) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -109,7 +127,16 @@ fun Alarms(
                     EmptyState(modifier = Modifier.weight(1f))
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f)) {
-                        items(alarms) { alarm ->
+                        items(
+                            items = alarms,
+                            key = { it.id }
+                        ) { alarm ->
+                            SwipeToDeleteContainer(
+                                item = alarm,
+                                onDelete = { deletedAlarm ->
+                                    onDeleteAlarm(alarm)
+                                }
+                            ) {
                             AlarmCard(
                                 alarmId = alarm.id,
                                 alarmName = alarm.name,
@@ -118,6 +145,7 @@ fun Alarms(
                                 alarmEnabled = alarm.enabled,
                                 onAlarmToggled = onAlarmToggled
                             )
+                            }
                         }
                     }
                 }
@@ -333,7 +361,6 @@ val montserratFontFamily = FontFamily(
     Font(R.font.montserrat_bold, FontWeight.Bold),
     Font(R.font.montserrat_semibold, FontWeight.SemiBold),
     Font(R.font.montserrat_medium, FontWeight.Medium)
-
 )
 
 @Composable
@@ -344,7 +371,73 @@ fun AlarmsScreenPreview() {
             alarms = listOf(Alarm(name = "", hour = "00", minute = "00", enabled = true)),
             isLoading = false,
             onAddAlarmClicked = { },
-            onAlarmToggled = {_,_ -> }
+            onAlarmToggled = {_,_ -> },
+            onDeleteAlarm = {}
+        )
+    }
+}
+
+@Composable
+fun <T> SwipeToDeleteContainer(
+    item: T,
+    onDelete: (T) -> Unit,
+    animationDuration: Int = 500,
+    content: @Composable (T) -> Unit
+) {
+    var isRemoved by remember {
+        mutableStateOf(false)
+    }
+    val state = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                isRemoved = true
+                true
+            } else {
+                false
+            }
+        }
+    )
+
+    LaunchedEffect(key1 = isRemoved) {
+        if(isRemoved) {
+            delay(animationDuration.toLong())
+            onDelete(item)
+        }
+    }
+
+    AnimatedVisibility(
+        visible = !isRemoved,
+        exit = shrinkVertically(
+            animationSpec = tween(durationMillis = animationDuration),
+            shrinkTowards = Alignment.Top
+        ) + fadeOut()
+    ) {
+        SwipeToDismissBox(
+            state = state,
+            backgroundContent = {
+                DeleteBackground()
+            },
+            content = { content(item) },
+            enableDismissFromStartToEnd = false,
+            enableDismissFromEndToStart = true,
+        )
+    }
+}
+
+@Composable
+fun DeleteBackground() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Transparent)
+            .padding(16.dp),
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Icon(
+            imageVector = Icons.Default.Delete,
+            contentDescription = null,
+            modifier = Modifier.size(50.dp).padding(end = 10.dp),
+            tint = colorResource(R.color.pale_red)
         )
     }
 }

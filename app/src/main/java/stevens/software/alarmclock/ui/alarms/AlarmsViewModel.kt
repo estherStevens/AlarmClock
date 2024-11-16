@@ -61,15 +61,25 @@ class AlarmsViewModel(
                     }
                     false -> {
                         alarmSchedulerRepository.cancelAlarm(
+                            alarmId = it.id,
                             alarmName = it.name,
                             alarmTime = AlarmTime(alarmHour = it.hour, alarmMinute = it.minute)
                         )
                     }
                 }
-//                alarmsRepository.updateAlarm()
             }
         }
+    }
 
+    fun deleteAlarm(alarm: Alarm){
+        viewModelScope.launch{
+            alarmSchedulerRepository.cancelAlarm(
+                alarmId = alarm.id,
+                alarmName = alarm.name,
+                alarmTime = AlarmTime(alarmHour = alarm.hour, alarmMinute = alarm.minute)
+            )
+            alarmsRepository.deleteAlarm(alarm)
+        }
     }
 
 

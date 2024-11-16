@@ -41,12 +41,16 @@ class AlarmSchedulerImp(val context: Context) : AlarmScheduler {
         )
     }
 
-    override fun cancel(alarm: AlarmItem) {
+    override fun cancel(alarmId: Int, alarmName: String, alarmTime: AlarmTime) {
+        val alarmIntent = Intent(context, AlarmBroadcastReceiver::class.java).apply {
+            putExtra("TRIGGERED_ALARM_NAME", alarmName)
+            putExtra("TRIGGERED_ALARM_TIME", "${alarmTime.alarmHour}:${alarmTime.alarmMinute}")
+        }
         alarmManager.cancel(
             PendingIntent.getBroadcast(
                 context,
-                alarm.hashCode(),
-                Intent(),
+                alarmId,
+                alarmIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
         )

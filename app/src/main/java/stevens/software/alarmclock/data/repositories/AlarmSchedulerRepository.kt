@@ -18,16 +18,11 @@ class AlarmSchedulerRepository(val alarmScheduler: AlarmScheduler) {
         )
     }
 
-    fun cancelAlarm(alarmName: String, alarmTime: AlarmTime){
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val timeAlarmScheduledFor = LocalDateTime.parse(
-            "${currentDate}T${alarmTime.alarmHour}:${alarmTime.alarmMinute}"
-        )
+    fun cancelAlarm(alarmId: Int, alarmName: String, alarmTime: AlarmTime){
         alarmScheduler.cancel(
-            AlarmItem(
-                name = alarmName,
-                time = timeAlarmScheduledFor
-            )
+           alarmId = alarmId,
+            alarmName = alarmName,
+            alarmTime = alarmTime
         )
     }
 
