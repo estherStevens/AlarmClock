@@ -4,7 +4,9 @@ import android.content.Context
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import stevens.software.alarmclock.data.Alarm
+//import stevens.software.alarmclock.data.AlarmWithSelectedDays
 import stevens.software.alarmclock.data.AlarmsDatabase
+//import stevens.software.alarmclock.data.SelectedDays
 
 class AlarmsRepositoryImp(val context: Context): AlarmsRepository {
     private val alarmDao = AlarmsDatabase.getDatabase(context).alarmDao()
@@ -34,4 +36,18 @@ class AlarmsRepositoryImp(val context: Context): AlarmsRepository {
        val i=  alarmDao.getAllAlarms()
         return i
     }
+
+//    override suspend fun addSelectedDaysForAlarm(selectedDays: SelectedDays) {
+//        alarmDao.addSelectedDaysForAlarm(selectedDays)
+//    }
+//
+//    override suspend fun updateSelectedDaysForAlarm(selectedDays: SelectedDays) {
+//        alarmDao.updateSelectedDaysForAlarm(selectedDays)
+//    }
+//
+//    override fun getAlarmWithSelectedDays(id: Int): Flow<AlarmWithSelectedDays> {
+//       return  alarmDao.getAlarmWithSelectedDays(id)
+//    }
+
+
 }

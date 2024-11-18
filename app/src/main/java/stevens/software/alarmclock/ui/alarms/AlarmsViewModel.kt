@@ -2,43 +2,22 @@ package stevens.software.alarmclock.ui.alarms
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.runtime.collectAsState
-import androidx.core.text.util.LocalePreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import stevens.software.alarmclock.data.Alarm
-import stevens.software.alarmclock.data.AlarmScheduler
 import stevens.software.alarmclock.data.AlarmTime
 import stevens.software.alarmclock.data.repositories.AlarmSchedulerRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
-import stevens.software.alarmclock.ui.create_alarm.CreateAlarmUiState
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.Duration
 
-import java.time.Period
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit.DAYS
-import java.time.temporal.ChronoUnit.HOURS
-import java.time.temporal.ChronoUnit.MINUTES
-import java.time.temporal.ChronoUnit.MONTHS
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
 class AlarmsViewModel(
     val alarmsRepository: AlarmsRepository,
@@ -75,7 +54,8 @@ class AlarmsViewModel(
                         alarmSchedulerRepository.scheduleAlarm(
                             alarmId = it.id,
                             alarmName = it.name,
-                            alarmTime = it.alarmTime
+                            alarmTime = it.alarmTime,
+                            repeatingDays = mutableListOf()
                         )
                     }
                     false -> {
@@ -113,7 +93,14 @@ class AlarmsViewModel(
             id = this.id,
             name = this.name,
             enabled = this.enabled,
-            alarmTime = this.alarmTime
+            alarmTime = this.alarmTime,
+            repeatOnMondays =  this.repeatingDays.find { it.day == Calendar.MONDAY }?.selected == true,
+            repeatOnTuesdays =  this.repeatingDays.find { it.day == Calendar.TUESDAY }?.selected == true,
+            repeatOnWednesdays =  this.repeatingDays.find { it.day == Calendar.WEDNESDAY }?.selected == true,
+            repeatOnThursdays = this.repeatingDays.find { it.day == Calendar.THURSDAY }?.selected == true,
+            repeatOnFridays =  this.repeatingDays.find { it.day == Calendar.FRIDAY }?.selected == true,
+            repeatOnSaturdays =  this.repeatingDays.find { it.day == Calendar.SATURDAY }?.selected == true,
+            repeatOnSundays =  this.repeatingDays.find { it.day == Calendar.SUNDAY }?.selected == true,
         )
     }
 
@@ -139,9 +126,34 @@ class AlarmsViewModel(
             id = this.id,
             name = this.name,
             enabled = this.enabled,
-            timeRemaining = RemainingTime(hours = hoursRemaining.toInt(), minutes = minutesRemaining),
-            alarmTime = this.alarmTime
+            timeRemaining = RemainingTime(
+                hours = hoursRemaining.toInt(),
+                minutes = minutesRemaining
+            ),
+            alarmTime = this.alarmTime,
+            repeatingDays = convertSelectedDaysToList(
+                this.repeatOnMondays,
+                this.repeatOnTuesdays,
+                this.repeatOnWednesdays,
+                this.repeatOnThursdays,
+                this.repeatOnFridays,
+                this.repeatOnSaturdays,
+                this.repeatOnSundays
+            )
         )
+    }
+
+    fun convertSelectedDaysToList(monday: Boolean, tuesday: Boolean, wednesday: Boolean, thursday: Boolean, friday: Boolean, saturday: Boolean, sunday: Boolean ) : MutableList<DaysOfWeek> {
+        return mutableListOf<DaysOfWeek>(
+            DaysOfWeek(day = Calendar.MONDAY, selected = monday),
+            DaysOfWeek(day = Calendar.TUESDAY, selected = tuesday),
+            DaysOfWeek(day = Calendar.WEDNESDAY, selected = wednesday),
+            DaysOfWeek(day = Calendar.THURSDAY, selected = thursday),
+            DaysOfWeek(day = Calendar.FRIDAY, selected = friday),
+            DaysOfWeek(day = Calendar.SATURDAY, selected = saturday),
+            DaysOfWeek(day = Calendar.SUNDAY, selected = sunday),
+
+            )
     }
 //    val uiState = MutableStateFlow<AlarmsUiState>(
 //        AlarmsUiState(
@@ -226,8 +238,15 @@ data class AlarmDto(
     val name: String,
     val alarmTime: LocalDateTime,
     val enabled: Boolean,
-    val timeRemaining: RemainingTime
+    val timeRemaining: RemainingTime,
+    val repeatingDays: MutableList<DaysOfWeek>,
 )
 
 data class RemainingTime(val hours: Int, val minutes: Int)
-enum class SelectedDaysOfTheWeek { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
+//enum class DaysOfTheWeek { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
+
+//enum class DayOfTheWeek { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
+
+data class DaysOfWeek(val day: Int, var selected: Boolean)
+
+enum class Days { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}

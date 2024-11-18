@@ -35,7 +35,10 @@ fun TriggeredAlarmScreen(
     TriggeredAlarm(
         alarmTime = uiState.value.alarmTime,
         alarmName = uiState.value.alarmName,
-        onTurnOffClicked = onTurnOffClicked
+        onTurnOffClicked = {
+            viewModel.turnOffAlarm()
+            onTurnOffClicked()
+        }
     )
 }
 

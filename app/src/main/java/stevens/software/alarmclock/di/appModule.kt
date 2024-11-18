@@ -26,10 +26,11 @@ import kotlin.coroutines.EmptyCoroutineContext.get
 val appModule = module {
     viewModel { AlarmsViewModel(get(), get()) }
     viewModel { CreateAlarmViewModel(get(), get()) }
-    viewModel { TriggeredAlarmViewModel(get()) }
+    viewModel { TriggeredAlarmViewModel(get(), get()) }
     singleOf(::AlarmsRepositoryImp) { bind<AlarmsRepository>() }
     singleOf(::AlarmSchedulerImp) { bind<AlarmScheduler>() }
     singleOf(::AlarmBroadcastReceiver)
+
     singleOf(::AlarmSchedulerRepository)
 
     single {

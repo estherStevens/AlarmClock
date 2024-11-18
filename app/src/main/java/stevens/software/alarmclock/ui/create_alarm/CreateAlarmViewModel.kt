@@ -9,8 +9,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.update
 import stevens.software.alarmclock.data.Alarm
+//import stevens.software.alarmclock.data.SelectedDays
 import stevens.software.alarmclock.data.repositories.AlarmSchedulerRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
+import stevens.software.alarmclock.ui.alarms.Days
+import stevens.software.alarmclock.ui.alarms.DaysOfWeek
+//import stevens.software.alarmclock.ui.alarms.DaysOfWeek
 import stevens.software.alarmclock.ui.alarms.RemainingTime
 import java.text.SimpleDateFormat
 import java.time.Duration
@@ -25,6 +29,7 @@ class CreateAlarmViewModel(
     val alarmSchedulerRepository: AlarmSchedulerRepository
 ) : ViewModel() {
 
+
     private val _uiState = MutableStateFlow(
         CreateAlarmUiState(
             alarmHour = "",
@@ -33,10 +38,32 @@ class CreateAlarmViewModel(
             alarmName = "",
             errorSavingAlarm = false,
             successSavingAlarm = false,
-            timeRemaining = null
+            timeRemaining = null,
+            repeatingDays = initialDaysOfTheWeek()
         )
     )
     val uiState: StateFlow<CreateAlarmUiState> = _uiState
+
+    fun updateDays(day: DaysOfWeek){
+        viewModelScope.launch{
+            _uiState.update {
+
+                val uL: MutableList<DaysOfWeek> = mutableListOf()
+                it.repeatingDays.map {
+                   if(it.day == day.day) {
+                       it.selected = day.selected
+                       uL.add(it)
+                   } else {
+                       uL.add(it)
+                   }
+                }.toMutableList()
+
+                it.copy(
+                    repeatingDays = uL
+                )
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.S)
     fun updateAlarmHour(alarmHour: String) {
@@ -49,6 +76,19 @@ class CreateAlarmViewModel(
                 )
             }
         }
+    }
+
+
+    fun initialDaysOfTheWeek(): MutableList<DaysOfWeek>{
+        return mutableListOf<DaysOfWeek>(
+            DaysOfWeek(day = Calendar.MONDAY, selected = false),
+            DaysOfWeek(day = Calendar.TUESDAY, selected = false),
+            DaysOfWeek(day = Calendar.WEDNESDAY, selected = false),
+            DaysOfWeek(day = Calendar.THURSDAY, selected = false),
+            DaysOfWeek(day = Calendar.FRIDAY, selected = false),
+            DaysOfWeek(day = Calendar.SATURDAY, selected = false),
+            DaysOfWeek(day = Calendar.SUNDAY, selected = false),
+        )
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
@@ -105,11 +145,14 @@ class CreateAlarmViewModel(
             val result = alarmsRepository.addAlarm(uiState.value.toAlarm())
             result.fold(
                 onSuccess = { id ->
+                    val repeatingDays = uiState.value.repeatingDays
+//                    alarmsRepository.addSelectedDaysForAlarm(uiState.value.toSelectedDays(id.toInt()))
                     _uiState.update { it.copy(successSavingAlarm = true) }
                     alarmSchedulerRepository.scheduleAlarm(
                         alarmId = id.toInt(),
                         alarmName = uiState.value.alarmName,
-                        alarmTime = convertToLocalDateTime(uiState.value.alarmHour, uiState.value.alarmMinute)
+                        alarmTime = convertToLocalDateTime(uiState.value.alarmHour, uiState.value.alarmMinute),
+                        repeatingDays = getRepeatingDays(uiState.value.repeatingDays)
                     )
                 },
                 onFailure = {
@@ -121,6 +164,14 @@ class CreateAlarmViewModel(
                 }
             )
         }
+    }
+
+    fun getRepeatingDays(repeatingDaysList: MutableList<DaysOfWeek>) :  MutableList<Int>{
+        val repeatingDays : MutableList<Int> = mutableListOf()
+        repeatingDaysList.map {
+            if (it.selected  == true) repeatingDays.add(it.day)
+        }
+        return repeatingDays
     }
 
     fun convertToLocalDateTime(hour: String, minute: String): LocalDateTime{
@@ -136,16 +187,53 @@ class CreateAlarmViewModel(
     }
 
 
+//    fun initialDaysOfTheWeek(): List<DaysOfWeek>{
+//        return listOf<DaysOfWeek>(
+//            DaysOfWeek(day = DayOfWeek.MONDAY, selected = false),
+//            DaysOfWeek(day = DayOfWeek.TUESDAY, selected = false),
+//            DaysOfWeek(day = DayOfWeek.WEDNESDAY, selected = false),
+//            DaysOfWeek(day = DayOfWeek.THURSDAY, selected = false),
+//            DaysOfWeek(day = DayOfWeek.FRIDAY, selected = false),
+//            DaysOfWeek(day = DayOfWeek.SATURDAY, selected = false),
+//            DaysOfWeek(day = DayOfWeek.SUNDAY, selected = false),
+//        )
+//    }
+//
+
+
     fun CreateAlarmUiState.toAlarm() : Alarm {
         val name = if(this.alarmName.isEmpty()) "Alarm" else this.alarmName
         return Alarm(
             name = name,
             enabled = true,
-            alarmTime = convertToLocalDateTime(alarmHour, alarmMinute)
+            alarmTime = convertToLocalDateTime(alarmHour, alarmMinute),
+            repeatOnMondays = this.repeatingDays.find { it.day == Calendar.MONDAY }?.selected == true,
+            repeatOnTuesdays = this.repeatingDays.find { it.day == Calendar.TUESDAY }?.selected == true,
+            repeatOnWednesdays = this.repeatingDays.find { it.day == Calendar.WEDNESDAY }?.selected == true,
+            repeatOnThursdays = this.repeatingDays.find { it.day == Calendar.THURSDAY }?.selected == true,
+            repeatOnFridays = this.repeatingDays.find { it.day == Calendar.FRIDAY }?.selected == true,
+            repeatOnSaturdays = this.repeatingDays.find { it.day == Calendar.SATURDAY }?.selected == true,
+            repeatOnSundays = this.repeatingDays.find { it.day == Calendar.SUNDAY }?.selected == true,
         )
     }
 
+    /*fun CreateAlarmUiState.toSelectedDays(alarmId: Int) : SelectedDays {
+      return SelectedDays(
+            alarmId = alarmId,
+            repeatOnMondays = this.testDays.find { it.day == DayOfWeek.MONDAY }?.selected == true,
+            repeatOnTuesdays = this.testDays.find { it.day == DayOfWeek.TUESDAY }?.selected == true,
+            repeatOnWednesdays = this.testDays.find { it.day == DayOfWeek.WEDNESDAY }?.selected == true,
+            repeatOnThursdays = this.testDays.find { it.day == DayOfWeek.THURSDAY }?.selected == true,
+            repeatOnFridays = this.testDays.find { it.day == DayOfWeek.FRIDAY }?.selected == true,
+            repeatOnSaturdays = this.testDays.find { it.day == DayOfWeek.SATURDAY }?.selected == true,
+            repeatOnSundays = this.testDays.find { it.day == DayOfWeek.SUNDAY }?.selected == true,
+        )
+    }*/
+
+
 }
+
+
 
 
 data class CreateAlarmUiState(
@@ -155,6 +243,7 @@ data class CreateAlarmUiState(
     val alarmName: String,
     val successSavingAlarm: Boolean,
     val errorSavingAlarm: Boolean,
-    val timeRemaining: RemainingTime?
+    val timeRemaining: RemainingTime?,
+    val repeatingDays: MutableList<DaysOfWeek>
 )
 

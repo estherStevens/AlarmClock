@@ -24,6 +24,15 @@ interface AlarmDao {
 
     @Query("Select * from alarms")
     fun getAllAlarms() : Flow<List<Alarm>>
+
+//    @Insert
+//    suspend fun addSelectedDaysForAlarm(selectedDays: SelectedDays)
+//
+//    @Update
+//    suspend fun updateSelectedDaysForAlarm(selectedDays: SelectedDays)
+//
+//    @Query("Select * from alarms where id = :id")
+//    fun getAlarmWithSelectedDays(id: Int) : Flow<AlarmWithSelectedDays>
 }
 
 //

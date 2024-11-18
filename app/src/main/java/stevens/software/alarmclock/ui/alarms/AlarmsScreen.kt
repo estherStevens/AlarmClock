@@ -14,9 +14,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -31,11 +32,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
@@ -48,7 +46,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,9 +67,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.R
-import stevens.software.alarmclock.data.Alarm
+import stevens.software.alarmclock.ui.create_alarm.mapDayOfWeekToString
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -91,7 +87,7 @@ fun AlarmsScreen(
         },
         onDeleteAlarm = { alarm ->
             alarmsViewModel.deleteAlarm(alarm)
-        }
+        },
     )
 }
 
@@ -102,7 +98,7 @@ fun Alarms(
     isLoading: Boolean,
     onAddAlarmClicked: () -> Unit,
     onAlarmToggled: (Int, Boolean) -> Unit,
-    onDeleteAlarm: (AlarmDto) -> Unit
+    onDeleteAlarm: (AlarmDto) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -149,7 +145,8 @@ fun Alarms(
                                 alarmMinute = alarm.alarmTime.minute,
                                 alarmEnabled = alarm.enabled,
                                 timeRemaining = alarm.timeRemaining,
-                                onAlarmToggled = onAlarmToggled
+                                testDays = alarm.repeatingDays,
+                                onAlarmToggled = onAlarmToggled,
                             )
                             }
                         }
@@ -187,9 +184,9 @@ fun AlarmCard(
     alarmHour: Int,
     alarmMinute: Int,
     alarmEnabled: Boolean,
+    testDays: MutableList<DaysOfWeek>,
     timeRemaining: RemainingTime,
-    onAlarmToggled: (Int, Boolean) -> Unit
-    /*electedDays: List<SelectedDaysOfTheWeek>*/
+    onAlarmToggled: (Int, Boolean) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -241,8 +238,10 @@ fun AlarmCard(
                 fontWeight = FontWeight.Medium,
                 color = colorResource(R.color.grey)
             )
-            /*Spacer(Modifier.size(8.dp))*/
-            /*AlarmDayPills(selectedDays = selectedDays)*/
+            Spacer(Modifier.size(8.dp))
+            AlarmDayPills(
+                days = testDays,
+            )
             /*Spacer(Modifier.size(8.dp))*/
             /*Text(
                 text = "Go to bed at 02:00AM to get 8h of sleep",
@@ -286,66 +285,45 @@ fun AlarmSwitch(
     )
 
 }
-/*@Composable
-fun AlarmDayPills(selectedDays: List<SelectedDaysOfTheWeek>) {
-    var isMondaySelected: Boolean = false
-    var isTuesdaySelected: Boolean = false
-    var isWednesdaySelected: Boolean = false
-    var isThursdaySelected: Boolean = false
-    var isFridaySelected: Boolean = false
-    var isSaturdaySelected: Boolean = false
-    var isSundaySelected: Boolean = false
-
-    for (day in selectedDays) {
-        when (day) {
-            SelectedDaysOfTheWeek.MONDAY -> isMondaySelected = true
-            SelectedDaysOfTheWeek.TUESDAY -> isTuesdaySelected = true
-            SelectedDaysOfTheWeek.WEDNESDAY -> isWednesdaySelected = true
-            SelectedDaysOfTheWeek.THURSDAY -> isThursdaySelected = true
-            SelectedDaysOfTheWeek.FRIDAY -> isFridaySelected = true
-            SelectedDaysOfTheWeek.SATURDAY -> isSaturdaySelected = true
-            SelectedDaysOfTheWeek.SUNDAY -> isSundaySelected = true
-        }
-    }
-
+@Composable
+fun AlarmDayPills(days: List<DaysOfWeek>) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(38.dp),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        AlarmDayPill("Mo", isMondaySelected)
-        AlarmDayPill("Tu", isTuesdaySelected)
-        AlarmDayPill("We", isWednesdaySelected)
-        AlarmDayPill("Th", isThursdaySelected)
-        AlarmDayPill("Fr", isFridaySelected)
-        AlarmDayPill("Sa", isSaturdaySelected)
-        AlarmDayPill("Su", isSundaySelected)
+        for(day in days) {
+            AlarmDayPill(dayOfWeek = day)
+        }
     }
-}*/
+}
 
-/*@Composable
+@Composable
 fun AlarmDayPill(
-    dayOfWeek: String,
-    isPillSelected: Boolean
-) {
+    dayOfWeek: DaysOfWeek) {
+
+    var selected by remember { mutableStateOf(dayOfWeek.selected) }
+
     val pillColour =
-        if (isPillSelected) colorResource(R.color.blue) else colorResource(R.color.light_blue)
+        if (selected) colorResource(R.color.blue) else colorResource(R.color.light_blue)
+
     Box(
         modifier = Modifier
             .defaultMinSize(minWidth = 38.dp)
             .clip(RoundedCornerShape(38.dp))
             .background(color = pillColour)
+
     ) {
         Text(
-            text = dayOfWeek,
+            text = mapDayOfWeekToString(dayOfWeek.day),
             modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
             color = colorResource(R.color.white),
             fontFamily = montserratFontFamily,
             fontWeight = FontWeight.Bold
         )
     }
-}*/
+}
 
 @Composable
 fun EmptyState(modifier: Modifier) {
@@ -383,7 +361,13 @@ val montserratFontFamily = FontFamily(
 fun AlarmsScreenPreview() {
     MaterialTheme {
         Alarms (
-            alarms = listOf(AlarmDto(name = "", enabled = true, timeRemaining = RemainingTime(10, 20), alarmTime = LocalDateTime.now())),
+            alarms = listOf(AlarmDto(
+                name = "",
+                enabled = true,
+                timeRemaining = RemainingTime(10, 20),
+                alarmTime = LocalDateTime.now(),
+                repeatingDays = mutableListOf()
+            )),
             isLoading = false,
             onAddAlarmClicked = { },
             onAlarmToggled = {_,_ -> },

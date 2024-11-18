@@ -11,8 +11,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -46,53 +48,74 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.rememberNavController
 import org.koin.androidx.compose.koinViewModel
-import stevens.software.alarmclock.Alarms
-import stevens.software.alarmclock.CreateAlarm
 import stevens.software.alarmclock.R
+import stevens.software.alarmclock.ui.alarms.DaysOfWeek
 import stevens.software.alarmclock.ui.alarms.RemainingTime
 import stevens.software.alarmclock.ui.alarms.montserratFontFamily
+import java.util.Calendar
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarmScreen(
     onCloseButtonClicked: () -> Unit,
-    onSaveAlarmSuccess: () -> Unit
+    onSaveAlarmSuccess: () -> Unit,
+    createAlarmViewModel: CreateAlarmViewModel = koinViewModel()
 ) {
+    val uiState = createAlarmViewModel.uiState.collectAsStateWithLifecycle()
+
     CreateAlarm(
+        uiState = uiState.value,
         onCloseButtonClicked = onCloseButtonClicked,
-        onSaveAlarmSuccess = onSaveAlarmSuccess
+        onSaveAlarmSuccess = onSaveAlarmSuccess,
+        onUpdateAlarmName = {
+            createAlarmViewModel.updateAlarmName(it)
+        },
+        onUpdateAlarmHour = {
+            createAlarmViewModel.updateAlarmHour(it)
+        },
+        onUpdateAlarmMinute = {
+            createAlarmViewModel.updateAlarmMinute(it)
+        },
+        onSaveAlarm = {
+            createAlarmViewModel.saveAlarm()
+        },
+        onPillSelected = { it ->
+            createAlarmViewModel.updateDays(day = it)
+        }
+
     )
 }
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarm(
-    createAlarmViewModel: CreateAlarmViewModel = koinViewModel(),
+    uiState: CreateAlarmUiState,
     onCloseButtonClicked: () -> Unit = {},
-    onSaveAlarmSuccess: () -> Unit = {}
-) {
-    val uiState = createAlarmViewModel.uiState.collectAsStateWithLifecycle()
+    onSaveAlarmSuccess: () -> Unit = {},
+    onUpdateAlarmName:(String) -> Unit = {},
+    onUpdateAlarmMinute: (String) -> Unit = {},
+    onUpdateAlarmHour: (String) -> Unit = {},
+    onSaveAlarm: () -> Unit = {},
+    onPillSelected: (DaysOfWeek) -> Unit
+    ) {
     var openChangeAlarmNameDialog = remember { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.value.successSavingAlarm) {
-        if (uiState.value.successSavingAlarm == true) {
+    LaunchedEffect(uiState.successSavingAlarm) {
+        if (uiState.successSavingAlarm == true) {
             onSaveAlarmSuccess()
         }
     }
 
     if (openChangeAlarmNameDialog.value) {
         AddAlarmNameDialog(
-            alarmName = uiState.value.alarmName,
+            alarmName = uiState.alarmName,
             onSaveClicked = {
-                createAlarmViewModel.updateAlarmName(it)
+                onUpdateAlarmName(it)
                 openChangeAlarmNameDialog.value = false
             },
             onDismissDialog = {
@@ -125,13 +148,13 @@ fun CreateAlarm(
 
 
                 Button(
-                    onClick = { createAlarmViewModel.saveAlarm() },
+                    onClick = onSaveAlarm,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (uiState.value.saveButtonEnabled) colorResource(R.color.blue) else colorResource(
+                        containerColor = if (uiState.saveButtonEnabled) colorResource(R.color.blue) else colorResource(
                             R.color.light_grey
                         )
                     ),
-                    enabled = uiState.value.saveButtonEnabled
+                    enabled = uiState.saveButtonEnabled
                 ) {
                     Text(
                         text = stringResource(R.string.save),
@@ -143,25 +166,47 @@ fun CreateAlarm(
             }
             Spacer(Modifier.size(24.dp))
             AlarmTimePicker(
-                hour = uiState.value.alarmHour,
-                minute = uiState.value.alarmMinute,
-                timeRemaining = uiState.value.timeRemaining,
-                onHourChanged = {
-                    createAlarmViewModel.updateAlarmHour(it)
-                },
-                onMinuteChanged = {
-                    createAlarmViewModel.updateAlarmMinute(it)
-                },
+                hour = uiState.alarmHour,
+                minute = uiState.alarmMinute,
+                timeRemaining = uiState.timeRemaining,
+                onHourChanged = onUpdateAlarmHour,
+                onMinuteChanged = onUpdateAlarmMinute,
             )
 
             Spacer(Modifier.size(16.dp))
             AlarmName(
-                alarmNameValue = uiState.value.alarmName,
+                alarmNameValue = uiState.alarmName,
                 onAlarmNameClicked = {
                     openChangeAlarmNameDialog.value = true
                 }
             )
             Spacer(Modifier.size(16.dp))
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(colorResource(R.color.white))
+                    .fillMaxWidth().padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.repeat_title),
+                        color = colorResource(R.color.dark_black),
+                        fontFamily = montserratFontFamily,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+
+                    )
+                    Spacer(Modifier.size(10.dp))
+                    AlarmDayPills(
+                        days = uiState.repeatingDays,
+                        onPillSelected = { it ->
+                            onPillSelected(it)
+                        }
+                    )
+                }
+
+            }
         }
 
     }
@@ -298,6 +343,54 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
 }
 
 @Composable
+fun AlarmDayPills(days: List<DaysOfWeek>,
+                  onPillSelected: (DaysOfWeek) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(38.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        for(day in days) {
+            AlarmDayPill(dayOfWeek = day, onPillSelected = { it ->
+                onPillSelected(it)
+            })
+        }
+    }
+}
+
+@Composable
+fun AlarmDayPill(
+    dayOfWeek: DaysOfWeek,
+    onPillSelected: (DaysOfWeek) -> Unit
+) {
+
+    var selected by remember { mutableStateOf(dayOfWeek.selected) }
+
+    val pillColour =
+        if (selected) colorResource(R.color.blue) else colorResource(R.color.light_blue)
+
+    Box(
+        modifier = Modifier
+            .defaultMinSize(minWidth = 38.dp)
+            .clip(RoundedCornerShape(38.dp))
+            .background(color = pillColour)
+            .clickable {
+                selected = if(selected == false) true else false
+                onPillSelected(DaysOfWeek(day = dayOfWeek.day, selected = selected))
+            }
+    ) {
+        Text(
+            text = mapDayOfWeekToString(dayOfWeek.day),
+            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+            color = colorResource(R.color.white),
+            fontFamily = montserratFontFamily,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
 fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit) {
     Box(
         modifier = Modifier
@@ -413,10 +506,41 @@ fun AddAlarmNameDialog(
     }
 }
 
-@Preview(showSystemUi = true)
-@Composable
-fun CreateAlarmPreview() {
-    MaterialTheme {
-        AlarmTimePicker("00", "00", RemainingTime(10, 30), {}, {})
+fun mapDayOfWeekToString(day: Int) : String {
+    return when(day) {
+        Calendar.MONDAY -> "Mo"
+        Calendar.TUESDAY -> "Tu"
+        Calendar.WEDNESDAY -> "We"
+        Calendar.THURSDAY-> "Th"
+        Calendar.FRIDAY -> "Fr"
+        Calendar.SATURDAY -> "Sa"
+        Calendar.SUNDAY -> "Su"
+        else -> { "" }
     }
+
 }
+
+//@SuppressLint("NewApi")
+//@Preview(showSystemUi = true)
+//@Composable
+//fun CreateAlarmPreview() {
+//    MaterialTheme {
+//        CreateAlarm(
+//            uiState = CreateAlarmUiState(
+//                alarmHour = "00",
+//                alarmMinute = "00",
+//                saveButtonEnabled = false,
+//                alarmName = "Name",
+//                successSavingAlarm = false,
+//                errorSavingAlarm = false,
+//                timeRemaining = RemainingTime(0, 0),
+//                selectedDays = listOf()),
+//            onCloseButtonClicked = {},
+//            onSaveAlarm = {},
+//            onSaveAlarmSuccess = {},
+//            onUpdateAlarmHour = {},
+//            onUpdateAlarmName = {},
+//            onUpdateAlarmMinute = {}
+//        )
+//    }
+//}

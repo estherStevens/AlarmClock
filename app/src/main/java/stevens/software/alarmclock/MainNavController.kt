@@ -1,5 +1,7 @@
 package stevens.software.alarmclock
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -23,8 +25,9 @@ object Alarms
 object CreateAlarm
 
 @Serializable
-data class AlarmTriggered(val alarmName: String, val alarmTime: String)
+data class AlarmTriggered(val alarmId: Int, val alarmName: String, val alarmTime: String, val oneOffAlarm: Boolean)
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun MainNavController() {
     val navController = rememberNavController()
@@ -46,11 +49,13 @@ fun MainNavController() {
                 navDeepLink<AlarmTriggered>(basePath = "myapp://alarm_triggered")
             )
         ){
+            val alarmId = it.toRoute<AlarmTriggered>().alarmId
             val alarmTime = it.toRoute<AlarmTriggered>().alarmTime
             val alarmName = it.toRoute<AlarmTriggered>().alarmName
+            val isOneOffAlarm = it.toRoute<AlarmTriggered>().oneOffAlarm
 
             val viewModel : TriggeredAlarmViewModel = koinViewModel()
-            viewModel.setDeepLinkData(alarmName, alarmTime)
+            viewModel.setDeepLinkData(alarmId, alarmName, alarmTime, isOneOffAlarm)
 
             TriggeredAlarmScreen(
                 viewModel = viewModel,
