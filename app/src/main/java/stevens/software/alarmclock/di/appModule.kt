@@ -14,6 +14,7 @@ import stevens.software.alarmclock.data.AlarmsDatabase
 import stevens.software.alarmclock.data.repositories.AlarmSchedulerRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepositoryImp
+import stevens.software.alarmclock.data.repositories.RingtoneRepository
 //import stevens.software.alarmclock.data.repositories.AlarmsRepository
 //import stevens.software.alarmclock.data.repositories.AlarmsRepository
 //import stevens.software.alarmclock.data.repositories.AlarmsRepositoryImp
@@ -26,12 +27,12 @@ import kotlin.coroutines.EmptyCoroutineContext.get
 val appModule = module {
     viewModel { AlarmsViewModel(get(), get()) }
     viewModel { CreateAlarmViewModel(get(), get()) }
-    viewModel { TriggeredAlarmViewModel(get(), get()) }
+    viewModel { TriggeredAlarmViewModel(get(), get(), get()) }
     singleOf(::AlarmsRepositoryImp) { bind<AlarmsRepository>() }
     singleOf(::AlarmSchedulerImp) { bind<AlarmScheduler>() }
     singleOf(::AlarmBroadcastReceiver)
-
     singleOf(::AlarmSchedulerRepository)
+    singleOf(::RingtoneRepository)
 
     single {
         Room.databaseBuilder(

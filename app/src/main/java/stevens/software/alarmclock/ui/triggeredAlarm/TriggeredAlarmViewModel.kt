@@ -1,9 +1,12 @@
 package stevens.software.alarmclock.ui.triggeredAlarm
 
+import android.media.RingtoneManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import stevens.software.alarmclock.data.Alarm
@@ -11,12 +14,16 @@ import stevens.software.alarmclock.data.AlarmItem
 import stevens.software.alarmclock.data.AlarmScheduler
 import stevens.software.alarmclock.data.AlarmTime
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
+import stevens.software.alarmclock.data.repositories.RingtoneRepository
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.util.Date
 import java.util.Locale
 
-class TriggeredAlarmViewModel(val alarmScheduler: AlarmScheduler, val alarmsRepository: AlarmsRepository) : ViewModel() {
+class TriggeredAlarmViewModel(
+    val alarmScheduler: AlarmScheduler,
+    val alarmsRepository: AlarmsRepository,
+    val ringtoneRepository: RingtoneRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow<TriggeredAlarmUiState>(TriggeredAlarmUiState(
         alarmId = -1,
@@ -24,6 +31,10 @@ class TriggeredAlarmViewModel(val alarmScheduler: AlarmScheduler, val alarmsRepo
         alarmName = "",
         isOneOffAlarm = false
     ))
+
+    init {
+        ringtoneRepository.playAlarmTone()
+    }
 
     val uiState = _uiState.asStateFlow()
 
@@ -53,6 +64,7 @@ class TriggeredAlarmViewModel(val alarmScheduler: AlarmScheduler, val alarmsRepo
     }
 
     fun turnOffAlarm(){
+        ringtoneRepository.stopAlarmTone()
         if(uiState.value.isOneOffAlarm) {
             updateEnabledStateOfAlarm()
             alarmScheduler.cancel(
