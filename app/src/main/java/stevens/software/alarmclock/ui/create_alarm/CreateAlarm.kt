@@ -55,6 +55,7 @@ import stevens.software.alarmclock.R
 import stevens.software.alarmclock.montserratFontFamily
 import stevens.software.alarmclock.ui.alarms.RemainingTime
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarmScreen(
     createAlarmViewModel: CreateAlarmViewModel = koinViewModel(),
@@ -210,17 +211,20 @@ fun AlarmTimePicker(
                     }
                 )
             }
-            Spacer(Modifier.size(16.dp))
-            Text(
-                text = getTimeRemainingString(
-                    timeRemaining?.hours ?: 0,
-                    timeRemaining?.minutes ?: 0
-                ),
-                fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                color = colorResource(R.color.grey)
-            )
+
+            if(timeRemaining?.hours != null && timeRemaining?.minutes != null) {
+                Spacer(Modifier.size(16.dp))
+                Text(
+                    text = getTimeRemainingString(
+                        timeRemaining.hours,
+                        timeRemaining.minutes
+                    ),
+                    fontFamily = montserratFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    color = colorResource(R.color.grey)
+                )
+            }
         }
     }
 
@@ -228,8 +232,7 @@ fun AlarmTimePicker(
 
 fun getTimeRemainingString(hour: Int, minute: Int): String {
     val hoursRemaining = if (hour == 0) "" else "${hour}h "
-    val minutesRemaining = if (minute == 0) "" else "${minute}mins"
-    if (hour == 0 && minute == 0) return ""
+    val minutesRemaining = if (minute == 0) "> 1 min" else "${minute}mins"
     return "Alarm in $hoursRemaining$minutesRemaining"
 }
 
