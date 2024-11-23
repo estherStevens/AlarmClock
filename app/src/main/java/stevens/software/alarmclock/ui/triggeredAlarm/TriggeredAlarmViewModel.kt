@@ -33,6 +33,8 @@ class TriggeredAlarmViewModel(
     ))
 
     init {
+//        ringtoneRepository.getAllRingtones()
+//        ringtoneRepository.getDefaultRingtone()
         ringtoneRepository.playAlarmTone()
     }
 

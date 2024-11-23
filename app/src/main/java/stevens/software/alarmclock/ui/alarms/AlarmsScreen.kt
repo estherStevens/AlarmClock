@@ -78,6 +78,7 @@ fun AlarmsScreen(
     alarmsViewModel: AlarmsViewModel = koinViewModel()
 ) {
     val uiState = alarmsViewModel.uiState.collectAsStateWithLifecycle()
+
     Alarms(
         alarms = uiState.value.alarms,
         isLoading = uiState.value.isLoading,

@@ -15,6 +15,7 @@ import stevens.software.alarmclock.ui.alarms.AlarmsScreen
 
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmScreen
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmViewModel
+import stevens.software.alarmclock.ui.create_alarm.SelectRingtoneScreen
 import stevens.software.alarmclock.ui.triggeredAlarm.TriggeredAlarmViewModel
 
 
@@ -23,6 +24,9 @@ object Alarms
 
 @Serializable
 object CreateAlarm
+
+@Serializable
+object ChooseRingtone
 
 @Serializable
 data class AlarmTriggered(val alarmId: Int, val alarmName: String, val alarmTime: String, val oneOffAlarm: Boolean)
@@ -41,7 +45,13 @@ fun MainNavController() {
         composable<CreateAlarm> {
             CreateAlarmScreen(
                 onCloseButtonClicked = { navController.popBackStack() },
-                onSaveAlarmSuccess = { navController.navigate(Alarms) }
+                onSaveAlarmSuccess = { navController.navigate(Alarms) },
+                onChooseRingtoneClicked = { navController.navigate(ChooseRingtone) }
+            )
+        }
+        composable<ChooseRingtone> {
+            SelectRingtoneScreen(
+                onBackClicked = { navController.popBackStack() }
             )
         }
         composable<AlarmTriggered> (

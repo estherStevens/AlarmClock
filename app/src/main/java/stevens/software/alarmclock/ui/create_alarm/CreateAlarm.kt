@@ -62,16 +62,19 @@ import java.util.Calendar
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarmScreen(
+    createAlarmViewModel: CreateAlarmViewModel = koinViewModel(),
     onCloseButtonClicked: () -> Unit,
+    onChooseRingtoneClicked: () -> Unit,
     onSaveAlarmSuccess: () -> Unit,
-    createAlarmViewModel: CreateAlarmViewModel = koinViewModel()
 ) {
+
     val uiState = createAlarmViewModel.uiState.collectAsStateWithLifecycle()
 
     CreateAlarm(
         uiState = uiState.value,
         onCloseButtonClicked = onCloseButtonClicked,
         onSaveAlarmSuccess = onSaveAlarmSuccess,
+        onAlarmRingtoneClicked = onChooseRingtoneClicked,
         onUpdateAlarmName = {
             createAlarmViewModel.updateAlarmName(it)
         },
@@ -86,7 +89,7 @@ fun CreateAlarmScreen(
         },
         onPillSelected = { it ->
             createAlarmViewModel.updateDays(day = it)
-        }
+        },
 
     )
 }
@@ -101,7 +104,8 @@ fun CreateAlarm(
     onUpdateAlarmMinute: (String) -> Unit = {},
     onUpdateAlarmHour: (String) -> Unit = {},
     onSaveAlarm: () -> Unit = {},
-    onPillSelected: (DaysOfWeek) -> Unit
+    onPillSelected: (DaysOfWeek) -> Unit,
+    onAlarmRingtoneClicked: () -> Unit
     ) {
     var openChangeAlarmNameDialog = remember { mutableStateOf(false) }
 
@@ -181,32 +185,46 @@ fun CreateAlarm(
                 }
             )
             Spacer(Modifier.size(16.dp))
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(colorResource(R.color.white))
-                    .fillMaxWidth().padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column {
-                    Text(
-                        text = stringResource(R.string.repeat_title),
-                        color = colorResource(R.color.dark_black),
-                        fontFamily = montserratFontFamily,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
+            RepeatAlarm(
+                repeatingDays = uiState.repeatingDays,
+                onPillSelected = onPillSelected
+            )
+            Spacer(Modifier.size(16.dp))
+            AlarmRingtone(
+                alarmRingtoneValue = uiState.selectedRingtone,
+                onAlarmRingtoneClicked = onAlarmRingtoneClicked
+            )
+        }
 
-                    )
-                    Spacer(Modifier.size(10.dp))
-                    AlarmDayPills(
-                        days = uiState.repeatingDays,
-                        onPillSelected = { it ->
-                            onPillSelected(it)
-                        }
-                    )
+    }
+}
+
+@Composable
+fun RepeatAlarm(repeatingDays: MutableList<DaysOfWeek>,
+                onPillSelected: (DaysOfWeek) -> Unit){
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(colorResource(R.color.white))
+            .fillMaxWidth().padding(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column {
+            Text(
+                text = stringResource(R.string.repeat_title),
+                color = colorResource(R.color.dark_black),
+                fontFamily = montserratFontFamily,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+
+                )
+            Spacer(Modifier.size(10.dp))
+            AlarmDayPills(
+                days = repeatingDays,
+                onPillSelected = { it ->
+                    onPillSelected(it)
                 }
-
-            }
+            )
         }
 
     }
@@ -387,6 +405,42 @@ fun AlarmDayPill(
             fontFamily = montserratFontFamily,
             fontWeight = FontWeight.Bold
         )
+    }
+}
+
+@Composable
+fun AlarmRingtone(alarmRingtoneValue: String, onAlarmRingtoneClicked: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(colorResource(R.color.white))
+            .clickable {
+                onAlarmRingtoneClicked()
+            }
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = stringResource(R.string.alarm_name),
+                color = colorResource(R.color.dark_black),
+                fontFamily = montserratFontFamily,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            Text(
+                text = alarmRingtoneValue,
+                color = colorResource(R.color.grey),
+                fontFamily = montserratFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp
+            )
+        }
     }
 }
 

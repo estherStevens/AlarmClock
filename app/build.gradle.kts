@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     implementation(libs.core.splashscreen)
+    implementation(libs.accompanist.permissions)
     ksp(libs.room.compiler)
 
     testImplementation(libs.junit)

@@ -4,14 +4,21 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.update
 import stevens.software.alarmclock.data.Alarm
 //import stevens.software.alarmclock.data.SelectedDays
 import stevens.software.alarmclock.data.repositories.AlarmSchedulerRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
+import stevens.software.alarmclock.data.repositories.RingtoneRepository
+import stevens.software.alarmclock.ui.alarms.AlarmsUiState
 import stevens.software.alarmclock.ui.alarms.Days
 import stevens.software.alarmclock.ui.alarms.DaysOfWeek
 //import stevens.software.alarmclock.ui.alarms.DaysOfWeek
@@ -23,58 +30,141 @@ import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlin.collections.map
 
 class CreateAlarmViewModel(
     val alarmsRepository: AlarmsRepository,
-    val alarmSchedulerRepository: AlarmSchedulerRepository
+    val alarmSchedulerRepository: AlarmSchedulerRepository,
+    val ringtoneRepository: RingtoneRepository,
 ) : ViewModel() {
 
+    private val ringtoneTitle = ringtoneRepository.title
+    private val alarmHour = MutableStateFlow<String>("")
+    private val alarmMinute = MutableStateFlow<String>("")
+    private val saveButtonEnabled = MutableStateFlow<Boolean>(false)
+    private val alarmName = MutableStateFlow<String>("Alarm")
+    private val errorSavingAlarm = MutableStateFlow<Boolean>(false)
+    private val successSavingAlarm = MutableStateFlow<Boolean>(false)
+    private val timeRemaining = MutableStateFlow<RemainingTime?>(null)
+    private val repeatingDays = MutableStateFlow<MutableList<DaysOfWeek>>(initialDaysOfTheWeek())
 
-    private val _uiState = MutableStateFlow(
+    val uiState = combine(
+        alarmHour,
+        alarmMinute,
+        saveButtonEnabled,
+        alarmName,
+        errorSavingAlarm,
+        successSavingAlarm,
+        timeRemaining,
+        repeatingDays,
+        ringtoneTitle
+        ) { alarmHour, alarmMinute, saveButtonEnabled, alarmName, errorSavingAlarm, successSavingAlarm, timeRemaining, repeatingDays, ringtoneTitle ->
+        CreateAlarmUiState(
+            alarmHour = alarmHour,
+            alarmMinute = alarmMinute,
+            saveButtonEnabled = saveButtonEnabled,
+            alarmName = alarmName,
+            errorSavingAlarm = errorSavingAlarm,
+            successSavingAlarm = successSavingAlarm,
+            timeRemaining = timeRemaining,
+            repeatingDays = initialDaysOfTheWeek(),
+            selectedRingtone = ringtoneTitle
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
         CreateAlarmUiState(
             alarmHour = "",
             alarmMinute = "",
             saveButtonEnabled = false,
-            alarmName = "",
+            alarmName = "Alarm",
             errorSavingAlarm = false,
             successSavingAlarm = false,
             timeRemaining = null,
-            repeatingDays = initialDaysOfTheWeek()
+            repeatingDays = initialDaysOfTheWeek(),
+            selectedRingtone = ""
         )
     )
-    val uiState: StateFlow<CreateAlarmUiState> = _uiState
+
+//    private val _uiState = MutableStateFlow(
+//        CreateAlarmUiState(
+//            alarmHour = "",
+//            alarmMinute = "",
+//            saveButtonEnabled = false,
+//            alarmName = "Alarm",
+//            errorSavingAlarm = false,
+//            successSavingAlarm = false,
+//            timeRemaining = null,
+//            repeatingDays = initialDaysOfTheWeek(),
+//            selectedRingtone = ringtoneRepository.getRingtoneTitle()
+//        )
+//    )
+
+//    val i = ringtoneTitle.map { title ->
+//        CreateAlarmUiState(
+//            alarmHour = "",
+//            alarmMinute = "",
+//            saveButtonEnabled = false,
+//            alarmName = "Alarm",
+//            errorSavingAlarm = false,
+//            successSavingAlarm = false,
+//            timeRemaining = null,
+//            repeatingDays = initialDaysOfTheWeek(),
+//            selectedRingtone = title
+//        )
+//    }
+//
+
+//    val uiState: StateFlow<CreateAlarmUiState> = _uiState
 
     fun updateDays(day: DaysOfWeek){
         viewModelScope.launch{
-            _uiState.update {
 
-                val uL: MutableList<DaysOfWeek> = mutableListOf()
-                it.repeatingDays.map {
-                   if(it.day == day.day) {
-                       it.selected = day.selected
-                       uL.add(it)
-                   } else {
-                       uL.add(it)
-                   }
-                }.toMutableList()
+            val uL: MutableList<DaysOfWeek> = mutableListOf()
+            uiState.value.repeatingDays.map {
+                if(it.day == day.day) {
+                    it.selected = day.selected
+                    uL.add(it)
+                } else {
+                    uL.add(it)
+                }
+            }.toMutableList()
 
-                it.copy(
-                    repeatingDays = uL
-                )
-            }
+            repeatingDays.emit(uL)
+
+//            _uiState.update {
+//
+//                val uL: MutableList<DaysOfWeek> = mutableListOf()
+//                it.repeatingDays.map {
+//                   if(it.day == day.day) {
+//                       it.selected = day.selected
+//                       uL.add(it)
+//                   } else {
+//                       uL.add(it)
+//                   }
+//                }.toMutableList()
+//
+//                it.copy(
+//                    repeatingDays = uL
+//                )
+//            }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    fun updateAlarmHour(alarmHour: String) {
+    fun updateAlarmHour(hour: String) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    alarmHour = alarmHour,
-                    timeRemaining = getAlarmScheduledInTimeString(alarmHour, uiState.value.alarmMinute),
-                    saveButtonEnabled = alarmHour.isNotEmpty() && uiState.value.alarmMinute.isNotEmpty()
-                )
-            }
+            alarmHour.emit(hour)
+            timeRemaining.emit(getAlarmScheduledInTimeString(hour, uiState.value.alarmMinute))
+            saveButtonEnabled.emit(uiState.value.alarmHour.isNotEmpty() && uiState.value.alarmMinute.isNotEmpty())
+
+//            _uiState.update {
+//                it.copy(
+//                    alarmHour = alarmHour,
+//                    timeRemaining = getAlarmScheduledInTimeString(alarmHour, uiState.value.alarmMinute),
+//                    saveButtonEnabled = alarmHour.isNotEmpty() && uiState.value.alarmMinute.isNotEmpty()
+//                )
+//            }
         }
     }
 
@@ -92,15 +182,19 @@ class CreateAlarmViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    fun updateAlarmMinute(alarmMinute: String) {
+    fun updateAlarmMinute(minute: String) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    alarmMinute = alarmMinute,
-                    timeRemaining = getAlarmScheduledInTimeString(uiState.value.alarmHour, alarmMinute),
-                    saveButtonEnabled = uiState.value.alarmHour.isNotEmpty() && alarmMinute.isNotEmpty()
-                )
-            }
+            alarmMinute.emit(minute)
+            timeRemaining.emit(getAlarmScheduledInTimeString(uiState.value.alarmHour, minute))
+            saveButtonEnabled.emit(uiState.value.alarmHour.isNotEmpty() && uiState.value.alarmMinute.isNotEmpty())
+
+//            _uiState.update {
+//                it.copy(
+//                    alarmMinute = alarmMinute,
+//                    timeRemaining = getAlarmScheduledInTimeString(uiState.value.alarmHour, alarmMinute),
+//                    saveButtonEnabled = uiState.value.alarmHour.isNotEmpty() && alarmMinute.isNotEmpty()
+//                )
+//            }
         }
     }
 
@@ -130,13 +224,14 @@ class CreateAlarmViewModel(
     }
 
 
-    fun updateAlarmName(alarmName: String) {
+    fun updateAlarmName(name: String) {
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    alarmName = alarmName,
-                )
-            }
+            alarmName.emit(name)
+//            _uiState.update {
+//                it.copy(
+//                    alarmName = alarmName,
+//                )
+//            }
         }
     }
 
@@ -147,7 +242,8 @@ class CreateAlarmViewModel(
                 onSuccess = { id ->
                     val repeatingDays = uiState.value.repeatingDays
 //                    alarmsRepository.addSelectedDaysForAlarm(uiState.value.toSelectedDays(id.toInt()))
-                    _uiState.update { it.copy(successSavingAlarm = true) }
+//                    _uiState.update { it.copy(successSavingAlarm = true) }
+                    successSavingAlarm.emit(true)
                     alarmSchedulerRepository.scheduleAlarm(
                         alarmId = id.toInt(),
                         alarmName = uiState.value.alarmName,
@@ -156,11 +252,12 @@ class CreateAlarmViewModel(
                     )
                 },
                 onFailure = {
-                    _uiState.update {
-                        it.copy(
-                            errorSavingAlarm = true,
-                        )
-                    }
+                    errorSavingAlarm.emit(true)
+//                    _uiState.update {
+//                        it.copy(
+//                            errorSavingAlarm = true,
+//                        )
+//                    }
                 }
             )
         }
@@ -244,6 +341,35 @@ data class CreateAlarmUiState(
     val successSavingAlarm: Boolean,
     val errorSavingAlarm: Boolean,
     val timeRemaining: RemainingTime?,
-    val repeatingDays: MutableList<DaysOfWeek>
+    val repeatingDays: MutableList<DaysOfWeek>,
+    val selectedRingtone: String
 )
 
+fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> combine(
+    flow: Flow<T1>,
+    flow2: Flow<T2>,
+    flow3: Flow<T3>,
+    flow4: Flow<T4>,
+    flow5: Flow<T5>,
+    flow6: Flow<T6>,
+    flow7: Flow<T7>,
+    flow8: Flow<T8>,
+    flow9: Flow<T9>,
+    transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8, T9) -> R
+): Flow<R> = combine(
+    combine(flow, flow2, flow3, ::Triple),
+    combine(flow4, flow5, flow6, ::Triple),
+    combine(flow7, flow8, flow9, ::Triple)
+) { t1, t2, t3 ->
+    transform(
+        t1.first,
+        t1.second,
+        t1.third,
+        t2.first,
+        t2.second,
+        t2.third,
+        t3.first,
+        t3.second,
+        t3.third
+    )
+}
