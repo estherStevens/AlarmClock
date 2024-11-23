@@ -14,15 +14,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,10 +34,6 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
-
-
-
-
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -56,8 +49,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,8 +58,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.R
+import stevens.software.alarmclock.montserratFontFamily
 import java.time.LocalDateTime
-
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
@@ -83,7 +74,7 @@ fun AlarmsScreen(
         isLoading = uiState.value.isLoading,
         onAddAlarmClicked = onAddAlarmClicked,
         onAlarmToggled = { id, isEnabled ->
-            alarmsViewModel.updateAlarm(id, isEnabled)
+            alarmsViewModel.updateAlarmEnabledState(id, isEnabled)
         },
         onDeleteAlarm = { alarm ->
             alarmsViewModel.deleteAlarm(alarm)
@@ -115,14 +106,18 @@ fun Alarms(
                 fontWeight = FontWeight.Medium,
             )
 
-            if(isLoading) {
-                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(80.dp),
                         color = colorResource(R.color.blue)
                     )
                 }
-
             } else {
                 if (alarms.isEmpty()) {
                     EmptyState(modifier = Modifier.weight(1f))
@@ -138,15 +133,15 @@ fun Alarms(
                                     onDeleteAlarm(alarm)
                                 }
                             ) {
-                            AlarmCard(
-                                alarmId = alarm.id,
-                                alarmName = alarm.name,
-                                alarmHour = alarm.alarmTime.hour,
-                                alarmMinute = alarm.alarmTime.minute,
-                                alarmEnabled = alarm.enabled,
-                                timeRemaining = alarm.timeRemaining,
-                                onAlarmToggled = onAlarmToggled,
-                            )
+                                AlarmCard(
+                                    alarmId = alarm.id,
+                                    alarmName = alarm.name,
+                                    alarmHour = alarm.alarmTime.hour,
+                                    alarmMinute = alarm.alarmTime.minute,
+                                    alarmEnabled = alarm.enabled,
+                                    timeRemaining = alarm.timeRemaining,
+                                    onAlarmToggled = onAlarmToggled,
+                                )
                             }
                         }
                     }
@@ -196,10 +191,12 @@ fun AlarmCard(
             .fillMaxWidth()
     ) {
 
-        Column{
-            Row(modifier = Modifier.fillMaxWidth(),
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween) {
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
 
                 Text(
                     text = alarmName,
@@ -222,7 +219,7 @@ fun AlarmCard(
             val alarmMinuteFormatted = String.format("%02d", alarmMinute)
             val alarmHourFormatted = String.format("%02d", alarmHour)
             Text(
-                text = "$alarmHourFormatted:$alarmMinuteFormatted" ,
+                text = "$alarmHourFormatted:$alarmMinuteFormatted",
                 fontSize = 42.sp,
                 fontFamily = montserratFontFamily,
                 fontWeight = FontWeight.Medium,
@@ -236,22 +233,13 @@ fun AlarmCard(
                 fontWeight = FontWeight.Medium,
                 color = colorResource(R.color.grey)
             )
-            /*Spacer(Modifier.size(8.dp))*/
-            /*Text(
-                text = "Go to bed at 02:00AM to get 8h of sleep",
-                fontSize = 14.sp,
-                fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Bold,
-                color = colorResource(R.color.grey)
-            )*/
-
         }
     }
 }
 
-fun getTimeRemainingString(hour: Int, minute: Int): String{
-    val hoursRemaining = if(hour == 0) "" else "${hour}h "
-    val minutesRemaining = if(minute == 0) "" else "${minute}mins"
+fun getTimeRemainingString(hour: Int, minute: Int): String {
+    val hoursRemaining = if (hour == 0) "" else "${hour}h "
+    val minutesRemaining = if (minute == 0) "" else "${minute}mins"
     return "Alarm in $hoursRemaining$minutesRemaining"
 }
 
@@ -260,7 +248,7 @@ fun getTimeRemainingString(hour: Int, minute: Int): String{
 fun AlarmSwitch(
     alarmEnabled: Boolean,
     onAlarmToggled: (Boolean) -> Unit
-){
+) {
     var checked by remember { mutableStateOf(alarmEnabled) }
 
     Switch(
@@ -277,9 +265,7 @@ fun AlarmSwitch(
             uncheckedBorderColor = colorResource(R.color.very_light_blue)
         )
     )
-
 }
-
 
 @Composable
 fun EmptyState(modifier: Modifier) {
@@ -305,27 +291,22 @@ fun EmptyState(modifier: Modifier) {
     }
 }
 
-val montserratFontFamily = FontFamily(
-    Font(R.font.montserrat_regular, FontWeight.Normal),
-    Font(R.font.montserrat_bold, FontWeight.Bold),
-    Font(R.font.montserrat_semibold, FontWeight.SemiBold),
-    Font(R.font.montserrat_medium, FontWeight.Medium)
-)
-
 @Composable
 @Preview(showSystemUi = true)
 fun AlarmsScreenPreview() {
     MaterialTheme {
-        Alarms (
-            alarms = listOf(AlarmDto(
-                name = "",
-                enabled = true,
-                timeRemaining = RemainingTime(10, 20),
-                alarmTime = LocalDateTime.now(),
-            )),
+        Alarms(
+            alarms = listOf(
+                AlarmDto(
+                    name = "",
+                    enabled = true,
+                    timeRemaining = RemainingTime(10, 20),
+                    alarmTime = LocalDateTime.now(),
+                )
+            ),
             isLoading = false,
             onAddAlarmClicked = { },
-            onAlarmToggled = {_,_ -> },
+            onAlarmToggled = { _, _ -> },
             onDeleteAlarm = {}
         )
     }
@@ -353,7 +334,7 @@ fun <T> SwipeToDeleteContainer(
     )
 
     LaunchedEffect(key1 = isRemoved) {
-        if(isRemoved) {
+        if (isRemoved) {
             delay(animationDuration.toLong())
             onDelete(item)
         }
@@ -390,7 +371,9 @@ fun DeleteBackground() {
         Icon(
             imageVector = Icons.Default.Delete,
             contentDescription = null,
-            modifier = Modifier.size(50.dp).padding(end = 10.dp),
+            modifier = Modifier
+                .size(50.dp)
+                .padding(end = 10.dp),
             tint = colorResource(R.color.pale_red)
         )
     }

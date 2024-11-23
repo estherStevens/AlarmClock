@@ -1,21 +1,18 @@
 package stevens.software.alarmclock.data
 
-//import AlarmReceiver
 import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-//import now
-import java.time.DayOfWeek
+import stevens.software.alarmclock.ui.alarms.AlarmTime
 import java.time.LocalDateTime
-import java.time.ZoneId
-;
 import java.util.Calendar
 
 class AlarmSchedulerImp(val context: Context) : AlarmScheduler {
 
-    val alarmManager: AlarmManager = context.getSystemService<AlarmManager>(AlarmManager::class.java)
+    val alarmManager: AlarmManager =
+        context.getSystemService<AlarmManager>(AlarmManager::class.java)
 
     @SuppressLint("MissingPermission")
     override fun schedule(alarmId: Int, alarmName: String, alarmTime: LocalDateTime) {
@@ -35,7 +32,7 @@ class AlarmSchedulerImp(val context: Context) : AlarmScheduler {
             }
         }
 
-        setOneOffAlarm(
+        scheduleAlarm(
             calendar = calendar,
             alarmId = alarmId,
             alarmIntent = alarmIntent
@@ -55,8 +52,7 @@ class AlarmSchedulerImp(val context: Context) : AlarmScheduler {
     }
 
     @SuppressLint("MissingPermission")
-    fun setOneOffAlarm(calendar: Calendar, alarmId: Int, alarmIntent: Intent){
-
+    fun scheduleAlarm(calendar: Calendar, alarmId: Int, alarmIntent: Intent) {
         alarmManager.setAlarmClock(
             AlarmManager.AlarmClockInfo(calendar.timeInMillis, null),
             PendingIntent.getBroadcast(

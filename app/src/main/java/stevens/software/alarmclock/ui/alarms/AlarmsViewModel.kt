@@ -10,21 +10,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import stevens.software.alarmclock.data.Alarm
-import stevens.software.alarmclock.data.AlarmTime
 import stevens.software.alarmclock.data.repositories.AlarmSchedulerRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.Duration
 
 import java.util.Calendar
 
 class AlarmsViewModel(
     val alarmsRepository: AlarmsRepository,
-    val alarmSchedulerRepository: AlarmSchedulerRepository): ViewModel() {
+    val alarmSchedulerRepository: AlarmSchedulerRepository
+) : ViewModel() {
 
     private val isLoading = MutableStateFlow<Boolean>(true)
-    private val timeRemaining = MutableStateFlow<LocalTime?>(null)
 
     @RequiresApi(Build.VERSION_CODES.S)
     val uiState = combine(
@@ -44,12 +42,12 @@ class AlarmsViewModel(
         )
     )
 
-    fun updateAlarm(alarmId: Int, isEnabled: Boolean){
-        viewModelScope.launch{
+    fun updateAlarmEnabledState(alarmId: Int, isEnabled: Boolean) {
+        viewModelScope.launch {
             alarmsRepository.updateAlarm(alarmId, isEnabled)
             val alarm = alarmsRepository.getAlarm(alarmId)
             alarm.collect { it ->
-                when(it.enabled){
+                when (it.enabled) {
                     true -> {
                         alarmSchedulerRepository.scheduleAlarm(
                             alarmId = it.id,
@@ -57,6 +55,7 @@ class AlarmsViewModel(
                             alarmTime = it.alarmTime,
                         )
                     }
+
                     false -> {
                         alarmSchedulerRepository.cancelAlarm(
                             alarmId = it.id,
@@ -72,8 +71,8 @@ class AlarmsViewModel(
         }
     }
 
-    fun deleteAlarm(alarm: AlarmDto){
-        viewModelScope.launch{
+    fun deleteAlarm(alarm: AlarmDto) {
+        viewModelScope.launch {
             alarmSchedulerRepository.cancelAlarm(
                 alarmId = alarm.id,
                 alarmName = alarm.name,
@@ -87,7 +86,7 @@ class AlarmsViewModel(
         }
     }
 
-    fun AlarmDto.toAlarm() : Alarm {
+    fun AlarmDto.toAlarm(): Alarm {
         return Alarm(
             id = this.id,
             name = this.name,
@@ -97,7 +96,7 @@ class AlarmsViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    fun Alarm.toAlarmDto() : AlarmDto {
+    fun Alarm.toAlarmDto(): AlarmDto {
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, alarmTime.hour.toInt())
             set(Calendar.MINUTE, alarmTime.minute.toInt())
@@ -108,11 +107,13 @@ class AlarmsViewModel(
             }
         }
 
-        val a = LocalDateTime.ofInstant(calendar.toInstant(), calendar.timeZone.toZoneId())
-        val elapsed = Duration.between(LocalDateTime.now(), a)
+        val elapsedTime = Duration.between(
+            LocalDateTime.now(),
+            LocalDateTime.ofInstant(calendar.toInstant(), calendar.timeZone.toZoneId())
+        )
 
-        val hoursRemaining = elapsed.toHours().toFloat()
-        val minutesRemaining = elapsed.toMinutesPart()
+        val hoursRemaining = elapsedTime.toHours().toFloat()
+        val minutesRemaining = elapsedTime.toMinutesPart()
 
         return AlarmDto(
             id = this.id,
@@ -123,87 +124,14 @@ class AlarmsViewModel(
                 minutes = minutesRemaining
             ),
             alarmTime = this.alarmTime,
-
         )
     }
-
-//    val uiState = MutableStateFlow<AlarmsUiState>(
-//        AlarmsUiState(
-//            alarms = mockAlarms()
-//        )
-//    ).onStart {
-//        alarmsRepository.getAllAlarms()
-//    }
-
-
-//
-//    val i = alarmsRepository.getAllAlarms().collect{
-//
-//    }
-//    val uiStatee: MutableStateFlow<AlarmsUiState> = alarmsRepository.getAllAlarms().map {
-//        AlarmsUiState(
-//
-//        )
-//
-//    }.stateIn(
-//        viewModelScope,
-//        SharingStarted.Eagerly,
-//        AlarmsUiState(alarms = emptyList())
-//    )
-
-
-//    val uiState = alarmsRepository.getAllAlarms().map{
-//
-//    }
-//
-//    init {
-//        viewModelScope.launch{
-//
-//           val o =  alarmsRepository.getAllAlarms()
-//            o.collect{
-//                    value -> println("Collected $value")
-//            }
-//        }
-//        alarmsRepository.getAllAlarms()
-//    }
-
-//    fun mockAlarms() = emptyList<AlarmDto>()
-//        listOf<Alarm>(
-//        Alarm(
-//            time = "10:00",
-//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-//        ),
-//        Alarm(
-//            time ="13:00",
-//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-//        ),
-//        Alarm(
-//            time = "10:00",
-//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-//        ),
-//        Alarm(
-//            time = "10:00",
-//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-//        ),
-//        Alarm(
-//            time = "10:00",
-//            selectedDays = listOf(SelectedDaysOfTheWeek.MONDAY, SelectedDaysOfTheWeek.TUESDAY)
-//        ),
-//    )
-
-//
-//    fun Alarm.toCreateAlarmUiState() =
-//        AlarmsUiState(
-//            alarms = this,
-//        )
-
 }
 
 data class AlarmsUiState(
     val alarms: List<AlarmDto>,
     val isLoading: Boolean,
 )
-
 
 data class AlarmDto(
     val id: Int = 0,
@@ -214,10 +142,4 @@ data class AlarmDto(
 )
 
 data class RemainingTime(val hours: Int, val minutes: Int)
-//enum class DaysOfTheWeek { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
-
-//enum class DayOfTheWeek { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
-
-data class DaysOfWeek(val day: Int, var selected: Boolean)
-
-enum class Days { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY}
+data class AlarmTime(val alarmHour: String, val alarmMinute: String)

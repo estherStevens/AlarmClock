@@ -11,10 +11,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -54,53 +52,38 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.R
-import stevens.software.alarmclock.ui.alarms.DaysOfWeek
+import stevens.software.alarmclock.montserratFontFamily
 import stevens.software.alarmclock.ui.alarms.RemainingTime
-import stevens.software.alarmclock.ui.alarms.montserratFontFamily
-import java.util.Calendar
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarmScreen(
     createAlarmViewModel: CreateAlarmViewModel = koinViewModel(),
     onCloseButtonClicked: () -> Unit,
     onSaveAlarmSuccess: () -> Unit,
 ) {
-
     val uiState = createAlarmViewModel.uiState.collectAsStateWithLifecycle()
 
     CreateAlarm(
         uiState = uiState.value,
         onCloseButtonClicked = onCloseButtonClicked,
         onSaveAlarmSuccess = onSaveAlarmSuccess,
-        onUpdateAlarmName = {
-            createAlarmViewModel.updateAlarmName(it)
-        },
-        onUpdateAlarmHour = {
-            createAlarmViewModel.updateAlarmHour(it)
-        },
-        onUpdateAlarmMinute = {
-            createAlarmViewModel.updateAlarmMinute(it)
-        },
-        onSaveAlarm = {
-            createAlarmViewModel.saveAlarm()
-        },
-
-
-    )
+        onUpdateAlarmName = { createAlarmViewModel.updateAlarmName(it) },
+        onUpdateAlarmHour = { createAlarmViewModel.updateAlarmHour(it) },
+        onUpdateAlarmMinute = { createAlarmViewModel.updateAlarmMinute(it) },
+        onSaveAlarm = { createAlarmViewModel.saveAlarm() },
+        )
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun CreateAlarm(
     uiState: CreateAlarmUiState,
     onCloseButtonClicked: () -> Unit = {},
     onSaveAlarmSuccess: () -> Unit = {},
-    onUpdateAlarmName:(String) -> Unit = {},
+    onUpdateAlarmName: (String) -> Unit = {},
     onUpdateAlarmMinute: (String) -> Unit = {},
     onUpdateAlarmHour: (String) -> Unit = {},
     onSaveAlarm: () -> Unit = {},
-    ) {
+) {
     var openChangeAlarmNameDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.successSavingAlarm) {
@@ -144,7 +127,6 @@ fun CreateAlarm(
                     tint = colorResource(R.color.light_grey)
                 )
 
-
                 Button(
                     onClick = onSaveAlarm,
                     colors = ButtonDefaults.buttonColors(
@@ -181,11 +163,9 @@ fun CreateAlarm(
             Spacer(Modifier.size(16.dp))
 
         }
-
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmTimePicker(
     hour: String,
@@ -232,7 +212,10 @@ fun AlarmTimePicker(
             }
             Spacer(Modifier.size(16.dp))
             Text(
-                text = getTimeRemainingString(timeRemaining?.hours ?: 0, timeRemaining?.minutes ?: 0),
+                text = getTimeRemainingString(
+                    timeRemaining?.hours ?: 0,
+                    timeRemaining?.minutes ?: 0
+                ),
                 fontFamily = montserratFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
@@ -243,10 +226,10 @@ fun AlarmTimePicker(
 
 }
 
-fun getTimeRemainingString(hour: Int, minute: Int): String{
-    val hoursRemaining = if(hour == 0) "" else "${hour}h "
-    val minutesRemaining = if(minute == 0) "" else "${minute}mins"
-    if(hour == 0  && minute == 0) return ""
+fun getTimeRemainingString(hour: Int, minute: Int): String {
+    val hoursRemaining = if (hour == 0) "" else "${hour}h "
+    val minutesRemaining = if (minute == 0) "" else "${minute}mins"
+    if (hour == 0 && minute == 0) return ""
     return "Alarm in $hoursRemaining$minutesRemaining"
 }
 
@@ -430,29 +413,3 @@ fun AddAlarmNameDialog(
         }
     }
 }
-
-
-//@SuppressLint("NewApi")
-//@Preview(showSystemUi = true)
-//@Composable
-//fun CreateAlarmPreview() {
-//    MaterialTheme {
-//        CreateAlarm(
-//            uiState = CreateAlarmUiState(
-//                alarmHour = "00",
-//                alarmMinute = "00",
-//                saveButtonEnabled = false,
-//                alarmName = "Name",
-//                successSavingAlarm = false,
-//                errorSavingAlarm = false,
-//                timeRemaining = RemainingTime(0, 0),
-//                selectedDays = listOf()),
-//            onCloseButtonClicked = {},
-//            onSaveAlarm = {},
-//            onSaveAlarmSuccess = {},
-//            onUpdateAlarmHour = {},
-//            onUpdateAlarmName = {},
-//            onUpdateAlarmMinute = {}
-//        )
-//    }
-//}

@@ -12,18 +12,14 @@ import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.ui.triggeredAlarm.TriggeredAlarmScreen
 import stevens.software.alarmclock.ui.alarms.AlarmsScreen
-
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmScreen
-import stevens.software.alarmclock.ui.create_alarm.CreateAlarmViewModel
 import stevens.software.alarmclock.ui.triggeredAlarm.TriggeredAlarmViewModel
-
 
 @Serializable
 object Alarms
 
 @Serializable
 object CreateAlarm
-
 
 @Serializable
 data class AlarmTriggered(val alarmId: Int, val alarmName: String, val alarmTime: String)
@@ -46,16 +42,16 @@ fun MainNavController() {
             )
         }
 
-        composable<AlarmTriggered> (
+        composable<AlarmTriggered>(
             deepLinks = listOf(
                 navDeepLink<AlarmTriggered>(basePath = "myapp://alarm_triggered")
             )
-        ){
+        ) {
             val alarmId = it.toRoute<AlarmTriggered>().alarmId
             val alarmTime = it.toRoute<AlarmTriggered>().alarmTime
             val alarmName = it.toRoute<AlarmTriggered>().alarmName
 
-            val viewModel : TriggeredAlarmViewModel = koinViewModel()
+            val viewModel: TriggeredAlarmViewModel = koinViewModel()
             viewModel.setDeepLinkData(alarmId, alarmName, alarmTime)
 
             TriggeredAlarmScreen(

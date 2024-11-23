@@ -3,7 +3,6 @@ package stevens.software.alarmclock.di
 import androidx.room.Room
 import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.bind
-import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -16,19 +15,14 @@ import stevens.software.alarmclock.data.repositories.AlarmSchedulerRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepository
 import stevens.software.alarmclock.data.repositories.AlarmsRepositoryImp
 import stevens.software.alarmclock.data.repositories.RingtoneRepository
-//import stevens.software.alarmclock.data.repositories.AlarmsRepository
-//import stevens.software.alarmclock.data.repositories.AlarmsRepository
-//import stevens.software.alarmclock.data.repositories.AlarmsRepositoryImp
 import stevens.software.alarmclock.ui.alarms.AlarmsViewModel
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmViewModel
 import stevens.software.alarmclock.ui.triggeredAlarm.TriggeredAlarmViewModel
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext.get
 
 val appModule = module {
-    viewModel { AlarmsViewModel(get(), get()) }
-    viewModel { CreateAlarmViewModel(get(), get(), get()) }
-    viewModel { TriggeredAlarmViewModel(get(), get(), get()) }
+    viewModelOf(::AlarmsViewModel)
+    viewModelOf(::CreateAlarmViewModel)
+    viewModelOf(::TriggeredAlarmViewModel)
     singleOf(::AlarmsRepositoryImp) { bind<AlarmsRepository>() }
     singleOf(::AlarmSchedulerImp) { bind<AlarmScheduler>() }
     singleOf(::AlarmBroadcastReceiver)

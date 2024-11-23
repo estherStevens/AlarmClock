@@ -24,9 +24,6 @@ abstract class AlarmsDatabase : RoomDatabase() {
                     .build()
                     .also { Instance = it }
             }
-
         }
     }
-
-
 }

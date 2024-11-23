@@ -1,6 +1,6 @@
 package stevens.software.alarmclock.data
 
-import java.time.DayOfWeek
+import stevens.software.alarmclock.ui.alarms.AlarmTime
 import java.time.LocalDateTime
 
 interface AlarmScheduler {

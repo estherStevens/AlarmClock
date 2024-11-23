@@ -4,10 +4,7 @@ import android.app.Application
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
-import stevens.software.alarmclock.MainActivity
 import stevens.software.alarmclock.di.appModule
-
-//import stevens.software.alarmclock.data.AppContainerImp
 
 class AlarmClockApplication : Application() {
     override fun onCreate() {
@@ -18,5 +15,4 @@ class AlarmClockApplication : Application() {
             modules(appModule)
         }
     }
-
 }
