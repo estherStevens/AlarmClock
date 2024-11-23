@@ -29,7 +29,6 @@ class TriggeredAlarmViewModel(
         alarmId = -1,
         alarmTime = AlarmTime(alarmHour = "", alarmMinute = ""),
         alarmName = "",
-        isOneOffAlarm = false
     ))
 
     init {
@@ -40,7 +39,7 @@ class TriggeredAlarmViewModel(
 
     val uiState = _uiState.asStateFlow()
 
-    fun setDeepLinkData(alarmId: Int, alarmName: String, alarmTime: String, isOneOffAlarm: Boolean){
+    fun setDeepLinkData(alarmId: Int, alarmName: String, alarmTime: String){
         val alarmSegments = alarmTime.split(":")
 
         viewModelScope.launch {
@@ -52,7 +51,6 @@ class TriggeredAlarmViewModel(
                         alarmHour = alarmSegments[0],
                         alarmMinute = alarmSegments[1]
                     ),
-                    isOneOffAlarm = isOneOffAlarm
                 )
             }
         }
@@ -67,14 +65,13 @@ class TriggeredAlarmViewModel(
 
     fun turnOffAlarm(){
         ringtoneRepository.stopAlarmTone()
-        if(uiState.value.isOneOffAlarm) {
-            updateEnabledStateOfAlarm()
-            alarmScheduler.cancel(
-                alarmId = uiState.value.alarmId,
-                alarmName = uiState.value.alarmName,
-                alarmTime = uiState.value.alarmTime
-            )
-        }
+        updateEnabledStateOfAlarm()
+        alarmScheduler.cancel(
+            alarmId = uiState.value.alarmId,
+            alarmName = uiState.value.alarmName,
+            alarmTime = uiState.value.alarmTime
+        )
+
     }
 
 }
@@ -82,5 +79,4 @@ class TriggeredAlarmViewModel(
 data class TriggeredAlarmUiState(
     val alarmId: Int,
     val alarmName: String,
-    val alarmTime: AlarmTime,
-    val isOneOffAlarm: Boolean)
+    val alarmTime: AlarmTime)

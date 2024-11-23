@@ -67,7 +67,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import stevens.software.alarmclock.R
-import stevens.software.alarmclock.ui.create_alarm.mapDayOfWeekToString
 import java.time.LocalDateTime
 
 
@@ -146,7 +145,6 @@ fun Alarms(
                                 alarmMinute = alarm.alarmTime.minute,
                                 alarmEnabled = alarm.enabled,
                                 timeRemaining = alarm.timeRemaining,
-                                testDays = alarm.repeatingDays,
                                 onAlarmToggled = onAlarmToggled,
                             )
                             }
@@ -185,7 +183,6 @@ fun AlarmCard(
     alarmHour: Int,
     alarmMinute: Int,
     alarmEnabled: Boolean,
-    testDays: MutableList<DaysOfWeek>,
     timeRemaining: RemainingTime,
     onAlarmToggled: (Int, Boolean) -> Unit,
 ) {
@@ -239,10 +236,6 @@ fun AlarmCard(
                 fontWeight = FontWeight.Medium,
                 color = colorResource(R.color.grey)
             )
-            Spacer(Modifier.size(8.dp))
-            AlarmDayPills(
-                days = testDays,
-            )
             /*Spacer(Modifier.size(8.dp))*/
             /*Text(
                 text = "Go to bed at 02:00AM to get 8h of sleep",
@@ -286,45 +279,7 @@ fun AlarmSwitch(
     )
 
 }
-@Composable
-fun AlarmDayPills(days: List<DaysOfWeek>) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(38.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        for(day in days) {
-            AlarmDayPill(dayOfWeek = day)
-        }
-    }
-}
 
-@Composable
-fun AlarmDayPill(
-    dayOfWeek: DaysOfWeek) {
-
-    var selected by remember { mutableStateOf(dayOfWeek.selected) }
-
-    val pillColour =
-        if (selected) colorResource(R.color.blue) else colorResource(R.color.light_blue)
-
-    Box(
-        modifier = Modifier
-            .defaultMinSize(minWidth = 38.dp)
-            .clip(RoundedCornerShape(38.dp))
-            .background(color = pillColour)
-
-    ) {
-        Text(
-            text = mapDayOfWeekToString(dayOfWeek.day),
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-            color = colorResource(R.color.white),
-            fontFamily = montserratFontFamily,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
 
 @Composable
 fun EmptyState(modifier: Modifier) {
@@ -367,7 +322,6 @@ fun AlarmsScreenPreview() {
                 enabled = true,
                 timeRemaining = RemainingTime(10, 20),
                 alarmTime = LocalDateTime.now(),
-                repeatingDays = mutableListOf()
             )),
             isLoading = false,
             onAddAlarmClicked = { },

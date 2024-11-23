@@ -8,12 +8,11 @@ import java.time.LocalDateTime
 
 class AlarmSchedulerRepository(val alarmScheduler: AlarmScheduler) {
 
-    fun scheduleAlarm(alarmId: Int, alarmName: String, alarmTime: LocalDateTime, repeatingDays: MutableList<Int>) {
+    fun scheduleAlarm(alarmId: Int, alarmName: String, alarmTime: LocalDateTime) {
         alarmScheduler.schedule(
             alarmId = alarmId,
             alarmName = alarmName,
             alarmTime = alarmTime,
-            repeatingDays = repeatingDays
         )
     }
 

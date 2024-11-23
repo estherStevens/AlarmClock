@@ -24,12 +24,11 @@ class AlarmBroadcastReceiver() : BroadcastReceiver() {
         val alarmId = p1?.getIntExtra("TRIGGERED_ALARM_ID", -1)
         val alarmName = p1?.getStringExtra("TRIGGERED_ALARM_NAME") ?: return
         val alarmTime = p1.getStringExtra("TRIGGERED_ALARM_TIME")?: return
-        val oneOffAlarm = p1.getBooleanExtra("ONE_OFF_ALARM", false)
 
 
         if (p0 != null) {
             val activityIntent = Intent(p0, MainActivity::class.java).apply {
-                data = "myapp://alarm_triggered/$alarmId/$alarmName/$alarmTime/$oneOffAlarm".toUri()
+                data = "myapp://alarm_triggered/$alarmId/$alarmName/$alarmTime".toUri()
             }
 //            Uri currentRingtonUri = RingtoneManager.getActualDefaultRingtoneUri(getApplicationContext(), RingtoneManager.TYPE_RINGTONE);
 

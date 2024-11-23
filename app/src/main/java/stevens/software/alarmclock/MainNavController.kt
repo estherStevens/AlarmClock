@@ -15,7 +15,6 @@ import stevens.software.alarmclock.ui.alarms.AlarmsScreen
 
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmScreen
 import stevens.software.alarmclock.ui.create_alarm.CreateAlarmViewModel
-import stevens.software.alarmclock.ui.create_alarm.SelectRingtoneScreen
 import stevens.software.alarmclock.ui.triggeredAlarm.TriggeredAlarmViewModel
 
 
@@ -25,11 +24,9 @@ object Alarms
 @Serializable
 object CreateAlarm
 
-@Serializable
-object ChooseRingtone
 
 @Serializable
-data class AlarmTriggered(val alarmId: Int, val alarmName: String, val alarmTime: String, val oneOffAlarm: Boolean)
+data class AlarmTriggered(val alarmId: Int, val alarmName: String, val alarmTime: String)
 
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
@@ -46,14 +43,9 @@ fun MainNavController() {
             CreateAlarmScreen(
                 onCloseButtonClicked = { navController.popBackStack() },
                 onSaveAlarmSuccess = { navController.navigate(Alarms) },
-                onChooseRingtoneClicked = { navController.navigate(ChooseRingtone) }
             )
         }
-        composable<ChooseRingtone> {
-            SelectRingtoneScreen(
-                onBackClicked = { navController.popBackStack() }
-            )
-        }
+
         composable<AlarmTriggered> (
             deepLinks = listOf(
                 navDeepLink<AlarmTriggered>(basePath = "myapp://alarm_triggered")
@@ -62,10 +54,9 @@ fun MainNavController() {
             val alarmId = it.toRoute<AlarmTriggered>().alarmId
             val alarmTime = it.toRoute<AlarmTriggered>().alarmTime
             val alarmName = it.toRoute<AlarmTriggered>().alarmName
-            val isOneOffAlarm = it.toRoute<AlarmTriggered>().oneOffAlarm
 
             val viewModel : TriggeredAlarmViewModel = koinViewModel()
-            viewModel.setDeepLinkData(alarmId, alarmName, alarmTime, isOneOffAlarm)
+            viewModel.setDeepLinkData(alarmId, alarmName, alarmTime)
 
             TriggeredAlarmScreen(
                 viewModel = viewModel,

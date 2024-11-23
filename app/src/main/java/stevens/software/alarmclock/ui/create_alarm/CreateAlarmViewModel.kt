@@ -38,37 +38,28 @@ class CreateAlarmViewModel(
     val ringtoneRepository: RingtoneRepository,
 ) : ViewModel() {
 
-    private val ringtoneTitle = ringtoneRepository.title
     private val alarmHour = MutableStateFlow<String>("")
     private val alarmMinute = MutableStateFlow<String>("")
     private val saveButtonEnabled = MutableStateFlow<Boolean>(false)
     private val alarmName = MutableStateFlow<String>("Alarm")
-    private val errorSavingAlarm = MutableStateFlow<Boolean>(false)
     private val successSavingAlarm = MutableStateFlow<Boolean>(false)
     private val timeRemaining = MutableStateFlow<RemainingTime?>(null)
-    private val repeatingDays = MutableStateFlow<MutableList<DaysOfWeek>>(initialDaysOfTheWeek())
 
     val uiState = combine(
         alarmHour,
         alarmMinute,
         saveButtonEnabled,
         alarmName,
-        errorSavingAlarm,
         successSavingAlarm,
         timeRemaining,
-        repeatingDays,
-        ringtoneTitle
-        ) { alarmHour, alarmMinute, saveButtonEnabled, alarmName, errorSavingAlarm, successSavingAlarm, timeRemaining, repeatingDays, ringtoneTitle ->
+        ) { alarmHour, alarmMinute, saveButtonEnabled, alarmName, successSavingAlarm, timeRemaining, ->
         CreateAlarmUiState(
             alarmHour = alarmHour,
             alarmMinute = alarmMinute,
             saveButtonEnabled = saveButtonEnabled,
             alarmName = alarmName,
-            errorSavingAlarm = errorSavingAlarm,
             successSavingAlarm = successSavingAlarm,
             timeRemaining = timeRemaining,
-            repeatingDays = initialDaysOfTheWeek(),
-            selectedRingtone = ringtoneTitle
         )
     }.stateIn(
         viewModelScope,
@@ -78,11 +69,8 @@ class CreateAlarmViewModel(
             alarmMinute = "",
             saveButtonEnabled = false,
             alarmName = "Alarm",
-            errorSavingAlarm = false,
             successSavingAlarm = false,
             timeRemaining = null,
-            repeatingDays = initialDaysOfTheWeek(),
-            selectedRingtone = ""
         )
     )
 
@@ -117,39 +105,6 @@ class CreateAlarmViewModel(
 
 //    val uiState: StateFlow<CreateAlarmUiState> = _uiState
 
-    fun updateDays(day: DaysOfWeek){
-        viewModelScope.launch{
-
-            val uL: MutableList<DaysOfWeek> = mutableListOf()
-            uiState.value.repeatingDays.map {
-                if(it.day == day.day) {
-                    it.selected = day.selected
-                    uL.add(it)
-                } else {
-                    uL.add(it)
-                }
-            }.toMutableList()
-
-            repeatingDays.emit(uL)
-
-//            _uiState.update {
-//
-//                val uL: MutableList<DaysOfWeek> = mutableListOf()
-//                it.repeatingDays.map {
-//                   if(it.day == day.day) {
-//                       it.selected = day.selected
-//                       uL.add(it)
-//                   } else {
-//                       uL.add(it)
-//                   }
-//                }.toMutableList()
-//
-//                it.copy(
-//                    repeatingDays = uL
-//                )
-//            }
-        }
-    }
 
     @RequiresApi(Build.VERSION_CODES.S)
     fun updateAlarmHour(hour: String) {
@@ -240,7 +195,6 @@ class CreateAlarmViewModel(
             val result = alarmsRepository.addAlarm(uiState.value.toAlarm())
             result.fold(
                 onSuccess = { id ->
-                    val repeatingDays = uiState.value.repeatingDays
 //                    alarmsRepository.addSelectedDaysForAlarm(uiState.value.toSelectedDays(id.toInt()))
 //                    _uiState.update { it.copy(successSavingAlarm = true) }
                     successSavingAlarm.emit(true)
@@ -248,11 +202,9 @@ class CreateAlarmViewModel(
                         alarmId = id.toInt(),
                         alarmName = uiState.value.alarmName,
                         alarmTime = convertToLocalDateTime(uiState.value.alarmHour, uiState.value.alarmMinute),
-                        repeatingDays = getRepeatingDays(uiState.value.repeatingDays)
                     )
                 },
                 onFailure = {
-                    errorSavingAlarm.emit(true)
 //                    _uiState.update {
 //                        it.copy(
 //                            errorSavingAlarm = true,
@@ -304,13 +256,6 @@ class CreateAlarmViewModel(
             name = name,
             enabled = true,
             alarmTime = convertToLocalDateTime(alarmHour, alarmMinute),
-            repeatOnMondays = this.repeatingDays.find { it.day == Calendar.MONDAY }?.selected == true,
-            repeatOnTuesdays = this.repeatingDays.find { it.day == Calendar.TUESDAY }?.selected == true,
-            repeatOnWednesdays = this.repeatingDays.find { it.day == Calendar.WEDNESDAY }?.selected == true,
-            repeatOnThursdays = this.repeatingDays.find { it.day == Calendar.THURSDAY }?.selected == true,
-            repeatOnFridays = this.repeatingDays.find { it.day == Calendar.FRIDAY }?.selected == true,
-            repeatOnSaturdays = this.repeatingDays.find { it.day == Calendar.SATURDAY }?.selected == true,
-            repeatOnSundays = this.repeatingDays.find { it.day == Calendar.SUNDAY }?.selected == true,
         )
     }
 
@@ -339,37 +284,27 @@ data class CreateAlarmUiState(
     val saveButtonEnabled: Boolean,
     val alarmName: String,
     val successSavingAlarm: Boolean,
-    val errorSavingAlarm: Boolean,
     val timeRemaining: RemainingTime?,
-    val repeatingDays: MutableList<DaysOfWeek>,
-    val selectedRingtone: String
 )
 
-fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, R> combine(
+fun <T1, T2, T3, T4, T5, T6, R> combine(
     flow: Flow<T1>,
     flow2: Flow<T2>,
     flow3: Flow<T3>,
     flow4: Flow<T4>,
     flow5: Flow<T5>,
     flow6: Flow<T6>,
-    flow7: Flow<T7>,
-    flow8: Flow<T8>,
-    flow9: Flow<T9>,
-    transform: suspend (T1, T2, T3, T4, T5, T6, T7, T8, T9) -> R
+    transform: suspend (T1, T2, T3, T4, T5, T6) -> R
 ): Flow<R> = combine(
     combine(flow, flow2, flow3, ::Triple),
     combine(flow4, flow5, flow6, ::Triple),
-    combine(flow7, flow8, flow9, ::Triple)
-) { t1, t2, t3 ->
+) { t1, t2 ->
     transform(
         t1.first,
         t1.second,
         t1.third,
         t2.first,
         t2.second,
-        t2.third,
-        t3.first,
-        t3.second,
-        t3.third
+        t2.third
     )
 }

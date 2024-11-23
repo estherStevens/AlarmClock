@@ -64,7 +64,6 @@ import java.util.Calendar
 fun CreateAlarmScreen(
     createAlarmViewModel: CreateAlarmViewModel = koinViewModel(),
     onCloseButtonClicked: () -> Unit,
-    onChooseRingtoneClicked: () -> Unit,
     onSaveAlarmSuccess: () -> Unit,
 ) {
 
@@ -74,7 +73,6 @@ fun CreateAlarmScreen(
         uiState = uiState.value,
         onCloseButtonClicked = onCloseButtonClicked,
         onSaveAlarmSuccess = onSaveAlarmSuccess,
-        onAlarmRingtoneClicked = onChooseRingtoneClicked,
         onUpdateAlarmName = {
             createAlarmViewModel.updateAlarmName(it)
         },
@@ -87,9 +85,7 @@ fun CreateAlarmScreen(
         onSaveAlarm = {
             createAlarmViewModel.saveAlarm()
         },
-        onPillSelected = { it ->
-            createAlarmViewModel.updateDays(day = it)
-        },
+
 
     )
 }
@@ -104,8 +100,6 @@ fun CreateAlarm(
     onUpdateAlarmMinute: (String) -> Unit = {},
     onUpdateAlarmHour: (String) -> Unit = {},
     onSaveAlarm: () -> Unit = {},
-    onPillSelected: (DaysOfWeek) -> Unit,
-    onAlarmRingtoneClicked: () -> Unit
     ) {
     var openChangeAlarmNameDialog = remember { mutableStateOf(false) }
 
@@ -185,46 +179,7 @@ fun CreateAlarm(
                 }
             )
             Spacer(Modifier.size(16.dp))
-            RepeatAlarm(
-                repeatingDays = uiState.repeatingDays,
-                onPillSelected = onPillSelected
-            )
-            Spacer(Modifier.size(16.dp))
-            AlarmRingtone(
-                alarmRingtoneValue = uiState.selectedRingtone,
-                onAlarmRingtoneClicked = onAlarmRingtoneClicked
-            )
-        }
 
-    }
-}
-
-@Composable
-fun RepeatAlarm(repeatingDays: MutableList<DaysOfWeek>,
-                onPillSelected: (DaysOfWeek) -> Unit){
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(colorResource(R.color.white))
-            .fillMaxWidth().padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column {
-            Text(
-                text = stringResource(R.string.repeat_title),
-                color = colorResource(R.color.dark_black),
-                fontFamily = montserratFontFamily,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-
-                )
-            Spacer(Modifier.size(10.dp))
-            AlarmDayPills(
-                days = repeatingDays,
-                onPillSelected = { it ->
-                    onPillSelected(it)
-                }
-            )
         }
 
     }
@@ -361,90 +316,6 @@ fun TimePickerItem(value: String, regex: Regex, onValueChanged: (String) -> Unit
 }
 
 @Composable
-fun AlarmDayPills(days: List<DaysOfWeek>,
-                  onPillSelected: (DaysOfWeek) -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(38.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        for(day in days) {
-            AlarmDayPill(dayOfWeek = day, onPillSelected = { it ->
-                onPillSelected(it)
-            })
-        }
-    }
-}
-
-@Composable
-fun AlarmDayPill(
-    dayOfWeek: DaysOfWeek,
-    onPillSelected: (DaysOfWeek) -> Unit
-) {
-
-    var selected by remember { mutableStateOf(dayOfWeek.selected) }
-
-    val pillColour =
-        if (selected) colorResource(R.color.blue) else colorResource(R.color.light_blue)
-
-    Box(
-        modifier = Modifier
-            .defaultMinSize(minWidth = 38.dp)
-            .clip(RoundedCornerShape(38.dp))
-            .background(color = pillColour)
-            .clickable {
-                selected = if(selected == false) true else false
-                onPillSelected(DaysOfWeek(day = dayOfWeek.day, selected = selected))
-            }
-    ) {
-        Text(
-            text = mapDayOfWeekToString(dayOfWeek.day),
-            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
-            color = colorResource(R.color.white),
-            fontFamily = montserratFontFamily,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun AlarmRingtone(alarmRingtoneValue: String, onAlarmRingtoneClicked: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(colorResource(R.color.white))
-            .clickable {
-                onAlarmRingtoneClicked()
-            }
-            .fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = stringResource(R.string.alarm_name),
-                color = colorResource(R.color.dark_black),
-                fontFamily = montserratFontFamily,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Text(
-                text = alarmRingtoneValue,
-                color = colorResource(R.color.grey),
-                fontFamily = montserratFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp
-            )
-        }
-    }
-}
-
-@Composable
 fun AlarmName(alarmNameValue: String, onAlarmNameClicked: () -> Unit) {
     Box(
         modifier = Modifier
@@ -560,19 +431,6 @@ fun AddAlarmNameDialog(
     }
 }
 
-fun mapDayOfWeekToString(day: Int) : String {
-    return when(day) {
-        Calendar.MONDAY -> "Mo"
-        Calendar.TUESDAY -> "Tu"
-        Calendar.WEDNESDAY -> "We"
-        Calendar.THURSDAY-> "Th"
-        Calendar.FRIDAY -> "Fr"
-        Calendar.SATURDAY -> "Sa"
-        Calendar.SUNDAY -> "Su"
-        else -> { "" }
-    }
-
-}
 
 //@SuppressLint("NewApi")
 //@Preview(showSystemUi = true)

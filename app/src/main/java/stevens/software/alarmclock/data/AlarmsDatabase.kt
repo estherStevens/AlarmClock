@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @TypeConverters(Converters::class)
-@Database(entities = [Alarm::class], version = 7)
+@Database(entities = [Alarm::class], version = 8)
 abstract class AlarmsDatabase : RoomDatabase() {
 
     abstract fun alarmDao(): AlarmDao

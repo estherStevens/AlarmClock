@@ -14,13 +14,6 @@ data class Alarm(
     val name: String,
     val alarmTime: LocalDateTime,
     val enabled: Boolean,
-    val repeatOnMondays: Boolean,
-    val repeatOnTuesdays: Boolean,
-    val repeatOnWednesdays: Boolean,
-    val repeatOnThursdays: Boolean,
-    val repeatOnFridays: Boolean,
-    val repeatOnSaturdays: Boolean,
-    val repeatOnSundays: Boolean,
 )
 
 /*@Entity(tableName = "selected_days")
